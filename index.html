@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="WorkTrack"/>
+<meta name="application-name" content="WorkTrack"/>
+<meta name="description" content="Attendance and wage management app for workers and projects"/>
+<meta name="theme-color" content="#0a1120"/>
+<link rel="manifest" id="manifest-placeholder"/>
+<title>WorkTrack</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:#0a1120;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#e8f0ff;overscroll-behavior:none;overflow-x:hidden;}
+input,select,button,textarea{font-family:inherit;}
+input[type=date]::-webkit-calendar-picker-indicator{filter:invert(1);opacity:.5;}
+select option{background:#0f1829;color:#e8f0ff;}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-thumb{background:#2a3a5e;border-radius:99px;}
+.page{display:none;padding:16px 16px 80px;}
+.page.active{display:block;}
+.card{background:#1a2236;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid #2a3a5e;}
+.input-wrap{margin-bottom:14px;}
+.input-label{color:#8899bb;font-size:12px;margin-bottom:6px;font-weight:600;display:block;}
+.inp{width:100%;background:#0f1829;border:1px solid #2a3a5e;border-radius:10px;padding:10px 14px;color:#e8f0ff;font-size:14px;outline:none;font-family:inherit;}
+.inp:focus{border-color:#f59e0b;}
+select.inp{appearance:none;-webkit-appearance:none;}
+.btn{border-radius:10px;padding:11px 20px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;border:none;transition:opacity .15s;}
+.btn:active{opacity:.8;}
+.btn-primary{background:linear-gradient(135deg,#f59e0b,#d97706);color:#0f1829;}
+.btn-ghost{background:#1a2236;color:#e8f0ff;border:1px solid #2a3a5e !important;}
+.btn-danger{background:#ef444422;color:#ef4444;border:1px solid #ef444444 !important;}
+.btn-success{background:#22c55e22;color:#22c55e;border:1px solid #22c55e44 !important;}
+.btn-sm{padding:6px 14px;font-size:12px;}
+.btn-full{width:100%;}
+.badge{display:inline-block;border-radius:99px;padding:2px 10px;font-size:12px;font-weight:700;white-space:nowrap;}
+.row{display:flex;align-items:center;}
+.row-between{display:flex;align-items:center;justify-content:space-between;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;}
+.stat-box{background:#0f1829;border-radius:10px;padding:8px 6px;text-align:center;}
+.stat-val{font-weight:800;font-size:14px;}
+.stat-lbl{color:#8899bb;font-size:10px;margin-top:2px;}
+.page-title{color:#e8f0ff;font-size:22px;font-weight:800;margin-bottom:16px;}
+.worker-name{color:#e8f0ff;font-weight:700;font-size:16px;}
+.sub-text{color:#8899bb;font-size:12px;margin-top:2px;}
+.section-title{color:#f59e0b;font-weight:700;margin-bottom:12px;}
+.tx-row{display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid #2a3a5e;font-size:12px;}
+#bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#0d1829;border-top:1px solid #2a3a5e;display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom);}
+.nav-btn{flex:1;padding:10px 4px 8px;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.nav-icon{font-size:18px;}
+.nav-lbl{font-size:9px;font-weight:600;}
+.nav-dot{width:4px;height:4px;border-radius:50%;background:#f59e0b;margin-top:1px;}
+.modal-bg{display:none;position:fixed;inset:0;background:#000a;z-index:200;align-items:flex-end;}
+.modal-bg.open{display:flex;}
+.modal-box{background:#131f35;border-radius:20px 20px 0 0;width:100%;max-height:88vh;overflow-y:auto;padding:20px;}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+.modal-title{color:#f59e0b;font-weight:800;font-size:16px;}
+.close-btn{background:none;border:none;cursor:pointer;color:#8899bb;font-size:20px;padding:4px;}
+.att-btns{display:flex;gap:6px;}
+.att-btn{flex:1;padding:9px 4px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;transition:all .15s;}
+#header{background:#070d1a;padding:10px 16px 8px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:50;border-bottom:1px solid #1a2236;}
+.header-title{color:#f59e0b;font-weight:800;font-size:16px;}
+.header-btns{display:flex;gap:8px;}
+.hbtn{background:none;border:1px solid #2a3a5e;border-radius:8px;padding:4px 12px;color:#8899bb;font-size:12px;font-weight:600;cursor:pointer;}
+.hbtn.active{border-color:#f59e0b;color:#f59e0b;background:#f59e0b11;}
+.empty{text-align:center;padding:32px;color:#445;}
+.empty-icon{font-size:40px;margin-bottom:10px;}
+.progress-bg{background:#0f1829;border-radius:99px;height:8px;}
+.progress-fill{height:100%;border-radius:99px;}
+#toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#1a2236;border:1px solid #f59e0b;color:#f59e0b;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:999;display:none;white-space:nowrap;}
+#splash{position:fixed;inset:0;background:#0a1120;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+#splash .splash-icon{font-size:64px;}
+#splash .splash-title{color:#f59e0b;font-size:28px;font-weight:800;letter-spacing:1px;}
+#splash .splash-sub{color:#8899bb;font-size:14px;}
+</style>
+</head>
+<body>
+
+<!-- SPLASH SCREEN -->
+<div id="splash">
+  <div class="splash-icon">⚒️</div>
+  <div class="splash-title">WorkTrack</div>
+  <div class="splash-sub">Loading your data...</div>
+</div>
+
+<div id="toast"></div>
+
+<div id="header">
+  <div class="header-title">⚒ WorkTrack</div>
+  <div class="header-btns">
+    <button class="hbtn" id="hbtn-reports" onclick="showPage('reports')">Reports</button>
+    <button class="hbtn" id="hbtn-sync" onclick="showPage('sync')">Sync</button>
+  </div>
+</div>
+
+<!-- HOME -->
+<div class="page active" id="page-home">
+  <div style="margin-bottom:20px;">
+    <div class="sub-text" id="today-label"></div>
+    <div class="page-title">Dashboard</div>
+  </div>
+  <div class="grid2" id="dash-stats"></div>
+  <div class="card" id="dash-attendance">
+    <div class="section-title">Today's Attendance</div>
+    <div id="dash-att-list"></div>
+  </div>
+  <div class="card" id="dash-projects-card" style="display:none">
+    <div class="section-title">Projects</div>
+    <div id="dash-proj-list"></div>
+  </div>
+</div>
+
+<!-- WORKERS -->
+<div class="page" id="page-workers">
+  <div class="row-between" style="margin-bottom:20px;">
+    <div class="page-title" style="margin:0">Workers</div>
+    <button class="btn btn-primary btn-sm" onclick="openWorkerModal()">+ Add</button>
+  </div>
+  <div id="workers-list"></div>
+</div>
+
+<!-- ATTENDANCE -->
+<div class="page" id="page-attendance">
+  <div class="page-title">Attendance</div>
+  <div class="card">
+    <div class="input-wrap">
+      <label class="input-label">Select Date</label>
+      <input type="date" class="inp" id="att-date" onchange="renderAttendance()"/>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-success btn-sm" onclick="markAll('P')">✓ All Present</button>
+      <button class="btn btn-danger btn-sm" onclick="markAll('A')">✗ All Absent</button>
+      <button class="btn btn-ghost btn-sm" onclick="markAll('L')">All Leave</button>
+    </div>
+  </div>
+  <div class="grid4" id="att-counts" style="margin-bottom:12px;"></div>
+  <div id="att-workers-list"></div>
+</div>
+
+<!-- PROJECTS -->
+<div class="page" id="page-projects">
+  <div class="row-between" style="margin-bottom:16px;">
+    <div class="page-title" style="margin:0">Projects</div>
+    <button class="btn btn-primary btn-sm" onclick="openProjectModal()">+ New</button>
+  </div>
+  <div id="projects-list"></div>
+</div>
+
+<!-- PAYOUTS -->
+<div class="page" id="page-payouts">
+  <div class="row-between" style="margin-bottom:16px;">
+    <div class="page-title" style="margin:0">Payouts</div>
+    <button class="btn btn-primary btn-sm" onclick="openPayoutModal()">+ Pay</button>
+  </div>
+  <div class="card" style="background:linear-gradient(135deg,#0d3b1a,#1a2236);border:1px solid #22c55e44;">
+    <div style="color:#22c55e;font-weight:700;margin-bottom:4px;">Total Paid Out</div>
+    <div id="payout-total" style="color:#e8f0ff;font-size:28px;font-weight:800;">₹0</div>
+    <div id="payout-count" class="sub-text"></div>
+  </div>
+  <div id="payouts-list"></div>
+</div>
+
+<!-- REPORTS -->
+<div class="page" id="page-reports">
+  <div class="row-between" style="margin-bottom:16px;">
+    <div class="page-title" style="margin:0">Reports</div>
+    <button class="btn btn-ghost btn-sm" onclick="exportReport()">⬇ Export</button>
+  </div>
+  <div class="card">
+    <div class="input-wrap">
+      <label class="input-label">Month</label>
+      <input type="month" class="inp" id="report-month" onchange="renderReports()"/>
+    </div>
+    <div class="input-wrap" style="margin:0">
+      <label class="input-label">Worker</label>
+      <select class="inp" id="report-worker" onchange="renderReports()">
+        <option value="all">All Workers</option>
+      </select>
+    </div>
+  </div>
+  <div class="grid3" id="report-totals" style="margin-bottom:16px;"></div>
+  <div id="report-list"></div>
+</div>
+
+<!-- SYNC -->
+<div class="page" id="page-sync">
+  <div class="page-title">Sync &amp; Backup</div>
+  <div class="card" style="background:linear-gradient(135deg,#0d1f3b,#1a2236);border:1px solid #60a5fa44;">
+    <div class="row" style="gap:10px;margin-bottom:12px;">
+      <span style="font-size:28px;">☁</span>
+      <div>
+        <div style="color:#e8f0ff;font-weight:700;">Google Drive Sync</div>
+        <div class="sub-text">Manual backup steps</div>
+      </div>
+    </div>
+    <div style="background:#0f1829;border-radius:10px;padding:12px;font-size:13px;color:#8899bb;line-height:1.8;">
+      <b style="color:#60a5fa;">Step 1:</b> Tap "Download Backup" below<br/>
+      <b style="color:#60a5fa;">Step 2:</b> Open Google Drive app<br/>
+      <b style="color:#60a5fa;">Step 3:</b> Tap + → Upload → select the .json file<br/>
+      <b style="color:#60a5fa;">Step 4:</b> To restore: download from Drive, tap Import below
+    </div>
+  </div>
+  <div class="card">
+    <div class="section-title">Backup &amp; Restore</div>
+    <div style="display:flex;gap:10px;margin-bottom:12px;">
+      <button class="btn btn-primary btn-full" onclick="downloadBackup()">⬇ Download Backup</button>
+      <label style="flex:1;">
+        <div class="btn btn-ghost btn-full" style="text-align:center;">📂 Import</div>
+        <input type="file" accept=".json" onchange="importBackup(event)" style="display:none;"/>
+      </label>
+    </div>
+    <div id="sync-status"></div>
+  </div>
+  <div class="card">
+    <div class="section-title">📊 Data Summary</div>
+    <div id="sync-summary"></div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div id="bottom-nav">
+  <button class="nav-btn" onclick="showPage('home')" id="nav-home">
+    <span class="nav-icon">🏠</span>
+    <span class="nav-lbl" style="color:#f59e0b;">Home</span>
+    <div class="nav-dot"></div>
+  </button>
+  <button class="nav-btn" onclick="showPage('workers')" id="nav-workers">
+    <span class="nav-icon">👷</span>
+    <span class="nav-lbl" style="color:#445;">Workers</span>
+  </button>
+  <button class="nav-btn" onclick="showPage('attendance')" id="nav-attendance">
+    <span class="nav-icon">📅</span>
+    <span class="nav-lbl" style="color:#445;">Attend</span>
+  </button>
+  <button class="nav-btn" onclick="showPage('projects')" id="nav-projects">
+    <span class="nav-icon">🏗</span>
+    <span class="nav-lbl" style="color:#445;">Projects</span>
+  </button>
+  <button class="nav-btn" onclick="showPage('payouts')" id="nav-payouts">
+    <span class="nav-icon">💰</span>
+    <span class="nav-lbl" style="color:#445;">Payouts</span>
+  </button>
+</div>
+
+<!-- MODALS -->
+<div class="modal-bg" id="modal-worker">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="worker-modal-title">Add Worker</div>
+      <button class="close-btn" onclick="closeModal('modal-worker')">✕</button>
+    </div>
+    <div class="input-wrap"><label class="input-label">Full Name *</label><input type="text" class="inp" id="w-name" placeholder="e.g. Rajesh Kumar"/></div>
+    <div class="input-wrap"><label class="input-label">Role / Designation</label><input type="text" class="inp" id="w-role" placeholder="e.g. Mason, Carpenter"/></div>
+    <div class="input-wrap"><label class="input-label">Daily Wage (₹) *</label><input type="number" class="inp" id="w-wage" placeholder="e.g. 600"/></div>
+    <div class="input-wrap"><label class="input-label">Phone Number</label><input type="tel" class="inp" id="w-phone" placeholder="e.g. 9876543210"/></div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-ghost btn-full" onclick="closeModal('modal-worker')">Cancel</button>
+      <button class="btn btn-primary btn-full" onclick="saveWorker()">Save Worker</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-project">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">New Project</div>
+      <button class="close-btn" onclick="closeModal('modal-project')">✕</button>
+    </div>
+    <div class="input-wrap"><label class="input-label">Project Name *</label><input type="text" class="inp" id="p-name" placeholder="e.g. House Construction"/></div>
+    <div class="input-wrap"><label class="input-label">Client Name</label><input type="text" class="inp" id="p-client" placeholder="e.g. Mr. Sharma"/></div>
+    <div class="input-wrap"><label class="input-label">Budget (₹)</label><input type="number" class="inp" id="p-budget" placeholder="e.g. 500000"/></div>
+    <div class="input-wrap"><label class="input-label">Status</label>
+      <select class="inp" id="p-status">
+        <option value="active">Active</option>
+        <option value="completed">Completed</option>
+        <option value="on-hold">On Hold</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-ghost btn-full" onclick="closeModal('modal-project')">Cancel</button>
+      <button class="btn btn-primary btn-full" onclick="saveProject()">Create Project</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-tx">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="tx-modal-title">Record Transaction</div>
+      <button class="close-btn" onclick="closeModal('modal-tx')">✕</button>
+    </div>
+    <input type="hidden" id="tx-type"/>
+    <div class="input-wrap"><label class="input-label">Worker</label><select class="inp" id="tx-worker"></select></div>
+    <div class="input-wrap"><label class="input-label">Amount (₹) *</label><input type="number" class="inp" id="tx-amount" placeholder="Enter amount"/></div>
+    <div class="input-wrap"><label class="input-label">Project</label><select class="inp" id="tx-project-sel"><option value="">No project</option></select></div>
+    <div class="input-wrap"><label class="input-label">Date</label><input type="date" class="inp" id="tx-date"/></div>
+    <div class="input-wrap"><label class="input-label">Note</label><input type="text" class="inp" id="tx-note" placeholder="Optional note"/></div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-ghost btn-full" onclick="closeModal('modal-tx')">Cancel</button>
+      <button class="btn btn-primary btn-full" onclick="saveTx()">Record</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-payout">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">Record Payout</div>
+      <button class="close-btn" onclick="closeModal('modal-payout')">✕</button>
+    </div>
+    <div class="input-wrap"><label class="input-label">Worker *</label><select class="inp" id="po-worker"><option value="">Select worker</option></select></div>
+    <div class="input-wrap"><label class="input-label">Amount (₹) *</label><input type="number" class="inp" id="po-amount" placeholder="Enter amount"/></div>
+    <div class="input-wrap"><label class="input-label">Project</label><select class="inp" id="po-project"><option value="">No project</option></select></div>
+    <div class="input-wrap"><label class="input-label">Date</label><input type="date" class="inp" id="po-date"/></div>
+    <div class="input-wrap"><label class="input-label">Note</label><input type="text" class="inp" id="po-note" placeholder="Optional"/></div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-ghost btn-full" onclick="closeModal('modal-payout')">Cancel</button>
+      <button class="btn btn-primary btn-full" onclick="savePayout()">Record Payout</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── PWA Manifest (injected as blob) ──────────────────────────────────────────
+(function(){
+  var manifest={
+    name:"WorkTrack",
+    short_name:"WorkTrack",
+    description:"Attendance and wage management for workers and projects",
+    start_url:"./",
+    display:"standalone",
+    background_color:"#0a1120",
+    theme_color:"#0a1120",
+    orientation:"portrait",
+    icons:[
+      {src:"data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="40" fill="#0a1120"/><text x="96" y="130" font-size="110" text-anchor="middle">⚒️</text></svg>'),sizes:"192x192",type:"image/svg+xml",purpose:"any maskable"},
+      {src:"data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="80" fill="#0a1120"/><text x="256" y="340" font-size="300" text-anchor="middle">⚒️</text></svg>'),sizes:"512x512",type:"image/svg+xml",purpose:"any maskable"}
+    ],
+    categories:["productivity","business","utilities"],
+    lang:"en-IN"
+  };
+  var blob=new Blob([JSON.stringify(manifest)],{type:"application/json"});
+  var url=URL.createObjectURL(blob);
+  document.getElementById("manifest-placeholder").href=url;
+})();
+
+// ── Service Worker (inline) ───────────────────────────────────────────────────
+if("serviceWorker" in navigator){
+  var swCode=`
+const CACHE="worktrack-v2";
+const ASSETS=["/"];
+self.addEventListener("install",e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)));self.skipWaiting();});
+self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim();});
+self.addEventListener("fetch",e=>{e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)));});
+`;
+  var swBlob=new Blob([swCode],{type:"application/javascript"});
+  var swUrl=URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swUrl).catch(function(){});
+}
+
+// ── Data ──────────────────────────────────────────────────────────────────────
+var DB={workers:[],attendance:{},projects:[],transactions:[]};
+var editWorkerId=null;
+var ATT={
+  P:{label:"Present",color:"#22c55e",short:"P",mul:1},
+  H:{label:"Half Day",color:"#f59e0b",short:"H",mul:0.5},
+  A:{label:"Absent",color:"#ef4444",short:"A",mul:0},
+  L:{label:"Leave",color:"#8b5cf6",short:"L",mul:0}
+};
+
+function saveDB(){
+  try{
+    localStorage.setItem("wt_w",JSON.stringify(DB.workers));
+    localStorage.setItem("wt_a",JSON.stringify(DB.attendance));
+    localStorage.setItem("wt_p",JSON.stringify(DB.projects));
+    localStorage.setItem("wt_t",JSON.stringify(DB.transactions));
+  }catch(e){}
+}
+function loadDB(){
+  try{
+    var w=localStorage.getItem("wt_w"),a=localStorage.getItem("wt_a"),p=localStorage.getItem("wt_p"),t=localStorage.getItem("wt_t");
+    if(w)DB.workers=JSON.parse(w);
+    if(a)DB.attendance=JSON.parse(a);
+    if(p)DB.projects=JSON.parse(p);
+    if(t)DB.transactions=JSON.parse(t);
+  }catch(e){}
+}
+
+function uid(){return Math.random().toString(36).slice(2,10);}
+function todayStr(){return new Date().toISOString().slice(0,10);}
+function fmt(n){return"₹"+Number(n||0).toLocaleString("en-IN");}
+function el(id){return document.getElementById(id);}
+function toast(msg){var t=el("toast");t.textContent=msg;t.style.display="block";setTimeout(function(){t.style.display="none";},2500);}
+function badge(text,color){return'<span class="badge" style="background:'+color+'22;color:'+color+';border:1px solid '+color+'44;">'+text+'</span>';}
+function statBox(val,lbl,color){return'<div class="stat-box"><div class="stat-val" style="color:'+color+';">'+val+'</div><div class="stat-lbl">'+lbl+'</div></div>';}
+function workerEarned(w){var t=0;for(var d in DB.attendance){var s=DB.attendance[d][w.id];if(s&&ATT[s])t+=w.wage*ATT[s].mul;}return t;}
+function workerPaid(w){var t=0;DB.transactions.forEach(function(tx){if(tx.wId===w.id&&tx.type==="payout")t+=tx.amt;});return t;}
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+var mainPages=["home","workers","attendance","projects","payouts"];
+function showPage(page){
+  document.querySelectorAll(".page").forEach(function(p){p.classList.remove("active");});
+  el("page-"+page).classList.add("active");
+  mainPages.forEach(function(p){
+    var btn=el("nav-"+p);if(!btn)return;
+    var lbl=btn.querySelector(".nav-lbl"),dot=btn.querySelector(".nav-dot");
+    if(p===page){lbl.style.color="#f59e0b";if(!dot){var d=document.createElement("div");d.className="nav-dot";btn.appendChild(d);}}
+    else{lbl.style.color="#445";if(dot)dot.remove();}
+  });
+  ["reports","sync"].forEach(function(p){var hb=el("hbtn-"+p);if(hb)hb.className="hbtn"+(p===page?" active":"");});
+  if(page==="home")renderHome();
+  else if(page==="workers")renderWorkers();
+  else if(page==="attendance")renderAttendance();
+  else if(page==="projects")renderProjects();
+  else if(page==="payouts")renderPayouts();
+  else if(page==="reports")renderReports();
+  else if(page==="sync")renderSync();
+}
+
+// ── HOME ──────────────────────────────────────────────────────────────────────
+function renderHome(){
+  var td=todayStr();
+  el("today-label").textContent="Today — "+new Date().toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"short"});
+  var todayMap=DB.attendance[td]||{};
+  var present=0,half=0;
+  for(var k in todayMap){if(todayMap[k]==="P")present++;if(todayMap[k]==="H")half++;}
+  var totalDues=0;
+  DB.workers.forEach(function(w){var e=workerEarned(w),p=workerPaid(w);totalDues+=Math.max(0,e-p);});
+  var activeProj=DB.projects.filter(function(p){return p.status==="active";}).length;
+  el("dash-stats").innerHTML=
+    '<div class="card" style="text-align:center;"><div style="font-size:24px;margin-bottom:4px;">👷</div><div style="font-size:20px;font-weight:800;color:#60a5fa;">'+DB.workers.length+'</div><div style="font-size:11px;color:#8899bb;">Workers</div></div>'+
+    '<div class="card" style="text-align:center;"><div style="font-size:24px;margin-bottom:4px;">✅</div><div style="font-size:20px;font-weight:800;color:#22c55e;">'+(present+half*0.5)+'</div><div style="font-size:11px;color:#8899bb;">Present Today</div></div>'+
+    '<div class="card" style="text-align:center;"><div style="font-size:24px;margin-bottom:4px;">💸</div><div style="font-size:18px;font-weight:800;color:#f59e0b;">'+fmt(totalDues)+'</div><div style="font-size:11px;color:#8899bb;">Total Dues</div></div>'+
+    '<div class="card" style="text-align:center;"><div style="font-size:24px;margin-bottom:4px;">🏗</div><div style="font-size:20px;font-weight:800;color:#a78bfa;">'+activeProj+'</div><div style="font-size:11px;color:#8899bb;">Projects</div></div>';
+  var attHtml=DB.workers.length===0?'<div style="color:#8899bb;font-size:13px;">No workers yet.</div>':"";
+  DB.workers.forEach(function(w){
+    var s=todayMap[w.id],att=s?ATT[s]:null;
+    attHtml+='<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #2a3a5e;"><div><div style="color:#e8f0ff;font-weight:600;font-size:14px;">'+w.name+'</div><div class="sub-text">'+(w.role||"—")+'</div></div>'+(att?badge(att.label,att.color):'<span style="color:#445;">—</span>')+'</div>';
+  });
+  el("dash-att-list").innerHTML=attHtml;
+  if(DB.projects.length>0){
+    el("dash-projects-card").style.display="block";
+    var pHtml="";
+    DB.projects.slice(0,3).forEach(function(p){
+      var spent=DB.transactions.filter(function(t){return t.pId===p.id&&t.type==="advance";}).reduce(function(s,t){return s+t.amt;},0);
+      var pct=p.budget?Math.min(100,(spent/p.budget)*100):0;
+      pHtml+='<div style="margin-bottom:12px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:#e8f0ff;font-size:13px;font-weight:600;">'+p.name+'</span><span style="color:#8899bb;font-size:12px;">'+fmt(spent)+' / '+fmt(p.budget)+'</span></div><div class="progress-bg"><div class="progress-fill" style="background:'+(pct>80?"#ef4444":"#f59e0b")+';width:'+pct+'%;"></div></div></div>';
+    });
+    el("dash-proj-list").innerHTML=pHtml;
+  }else{el("dash-projects-card").style.display="none";}
+}
+
+// ── WORKERS ───────────────────────────────────────────────────────────────────
+function renderWorkers(){
+  var html=DB.workers.length===0?'<div class="card empty"><div class="empty-icon">👷</div><div>No workers added yet</div><br/><button class="btn btn-primary" onclick="openWorkerModal()">Add First Worker</button></div>':"";
+  DB.workers.forEach(function(w){
+    var earned=workerEarned(w),paid=workerPaid(w),due=Math.max(0,earned-paid);
+    html+='<div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start;"><div style="flex:1;"><div class="worker-name">'+w.name+'</div><div class="sub-text">'+(w.role||"—")+' • '+fmt(w.wage)+'/day</div>'+(w.phone?'<div style="color:#60a5fa;font-size:12px;margin-top:2px;">📞 '+w.phone+'</div>':'')+
+    '</div><div style="display:flex;gap:8px;"><button onclick="openWorkerModal(\''+w.id+'\')" style="background:none;border:none;cursor:pointer;padding:4px;font-size:16px;">✏️</button><button onclick="deleteWorker(\''+w.id+'\')" style="background:none;border:none;cursor:pointer;padding:4px;font-size:16px;">🗑️</button></div></div>'+
+    '<div class="grid3" style="margin-top:12px;">'+statBox(fmt(earned),"Earned","#22c55e")+statBox(fmt(paid),"Paid","#60a5fa")+statBox(fmt(due),"Due",due>0?"#f59e0b":"#22c55e")+'</div></div>';
+  });
+  el("workers-list").innerHTML=html;
+}
+function openWorkerModal(id){
+  editWorkerId=id||null;
+  el("worker-modal-title").textContent=id?"Edit Worker":"Add Worker";
+  if(id){var w=DB.workers.find(function(x){return x.id===id;});if(w){el("w-name").value=w.name||"";el("w-role").value=w.role||"";el("w-wage").value=w.wage||"";el("w-phone").value=w.phone||"";}}
+  else{el("w-name").value="";el("w-role").value="";el("w-wage").value="";el("w-phone").value="";}
+  openModal("modal-worker");
+}
+function saveWorker(){
+  var name=el("w-name").value.trim(),wage=parseFloat(el("w-wage").value);
+  if(!name||!wage){toast("⚠ Name and wage required!");return;}
+  var role=el("w-role").value.trim(),phone=el("w-phone").value.trim();
+  if(editWorkerId){DB.workers=DB.workers.map(function(w){return w.id===editWorkerId?{id:w.id,name:name,role:role,wage:wage,phone:phone,joined:w.joined}:w;});toast("✅ Worker updated!");}
+  else{DB.workers.push({id:uid(),name:name,role:role,wage:wage,phone:phone,joined:todayStr()});toast("✅ Worker added!");}
+  saveDB();closeModal("modal-worker");renderWorkers();
+}
+function deleteWorker(id){if(!confirm("Delete this worker?"))return;DB.workers=DB.workers.filter(function(w){return w.id!==id;});saveDB();renderWorkers();toast("🗑 Deleted");}
+
+// ── ATTENDANCE ────────────────────────────────────────────────────────────────
+function renderAttendance(){
+  var dateEl=el("att-date");if(!dateEl.value)dateEl.value=todayStr();
+  var selDate=dateEl.value,dayMap=DB.attendance[selDate]||{};
+  var counts={P:0,H:0,A:0,L:0};
+  for(var k in dayMap){if(counts[dayMap[k]]!==undefined)counts[dayMap[k]]++;}
+  var cHtml="";
+  for(var key in ATT){cHtml+='<div style="background:'+ATT[key].color+'22;border-radius:10px;padding:6px 4px;text-align:center;border:1px solid '+ATT[key].color+'44;"><div style="color:'+ATT[key].color+';font-weight:800;font-size:16px;">'+counts[key]+'</div><div style="color:'+ATT[key].color+';font-size:10px;">'+ATT[key].label+'</div></div>';}
+  el("att-counts").innerHTML=cHtml;
+  var wHtml=DB.workers.length===0?'<div class="card" style="text-align:center;color:#8899bb;">Add workers first</div>':"";
+  DB.workers.forEach(function(w){
+    var status=dayMap[w.id];
+    wHtml+='<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><div><div style="color:#e8f0ff;font-weight:700;">'+w.name+'</div><div class="sub-text">'+(w.role||"—")+' • '+fmt(w.wage)+'/day</div></div>'+(status?badge(ATT[status].label,ATT[status].color):'<span style="color:#445;">—</span>')+'</div><div class="att-btns">';
+    for(var k in ATT){var active=status===k,col=ATT[k].color;wHtml+='<button class="att-btn" onclick="setAtt(\''+w.id+'\',\''+k+'\')" style="border:2px solid '+(active?col:col+"44")+';background:'+(active?col+"33":"transparent")+';color:'+col+';">'+ATT[k].short+'</button>';}
+    wHtml+='</div></div>';
+  });
+  el("att-workers-list").innerHTML=wHtml;
+}
+function setAtt(wId,status){var date=el("att-date").value||todayStr();if(!DB.attendance[date])DB.attendance[date]={};DB.attendance[date][wId]=status;saveDB();renderAttendance();}
+function markAll(status){var date=el("att-date").value||todayStr();if(!DB.attendance[date])DB.attendance[date]={};DB.workers.forEach(function(w){DB.attendance[date][w.id]=status;});saveDB();renderAttendance();}
+
+// ── PROJECTS ──────────────────────────────────────────────────────────────────
+function renderProjects(){
+  var html=DB.projects.length===0?'<div class="card empty"><div class="empty-icon">🏗</div><div>No projects yet</div><br/><button class="btn btn-primary" onclick="openProjectModal()">Add Project</button></div>':"";
+  DB.projects.forEach(function(p){
+    var advances=DB.transactions.filter(function(t){return t.pId===p.id&&t.type==="advance";}),payouts=DB.transactions.filter(function(t){return t.pId===p.id&&t.type==="payout";});
+    var totalAdv=advances.reduce(function(s,t){return s+t.amt;},0),totalPay=payouts.reduce(function(s,t){return s+t.amt;},0);
+    var pct=p.budget?Math.min(100,(totalAdv/p.budget)*100):0;
+    var recent=advances.concat(payouts).slice(-3).reverse();
+    html+='<div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;"><div><div style="color:#e8f0ff;font-weight:700;font-size:15px;">'+p.name+'</div>'+(p.client?'<div class="sub-text">Client: '+p.client+'</div>':'')+'<div style="margin-top:4px;">'+badge(p.status,p.status==="active"?"#22c55e":"#8899bb")+'</div></div><button onclick="deleteProject(\''+p.id+'\')" style="background:none;border:none;cursor:pointer;padding:4px;font-size:16px;">🗑️</button></div>';
+    if(p.budget>0)html+='<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;font-size:12px;color:#8899bb;margin-bottom:4px;"><span>Budget: '+fmt(p.budget)+'</span><span>'+pct.toFixed(0)+'% used</span></div><div class="progress-bg"><div class="progress-fill" style="background:'+(pct>80?"#ef4444":"#f59e0b")+';width:'+pct+'%;"></div></div></div>';
+    html+='<div class="grid2" style="margin-bottom:12px;"><div class="stat-box"><div class="stat-val" style="color:#f59e0b;">'+fmt(totalAdv)+'</div><div class="stat-lbl">Advances</div></div><div class="stat-box"><div class="stat-val" style="color:#22c55e;">'+fmt(totalPay)+'</div><div class="stat-lbl">Payouts</div></div></div>';
+    html+='<div style="display:flex;gap:8px;"><button class="btn btn-ghost btn-sm btn-full" onclick="openTxModal(\''+p.id+'\',\'advance\')">+ Advance</button><button class="btn btn-success btn-sm btn-full" onclick="openTxModal(\''+p.id+'\',\'payout\')">+ Payout</button></div>';
+    if(recent.length>0){html+='<div style="margin-top:10px;"><div style="color:#8899bb;font-size:11px;margin-bottom:4px;">Recent</div>';recent.forEach(function(t){var w=DB.workers.find(function(x){return x.id===t.wId;});html+='<div class="tx-row"><span style="color:#8899bb;">'+t.date+(w?" — "+w.name:"")+(t.note?" ("+t.note+")":"")+'</span><span style="color:'+(t.type==="payout"?"#22c55e":"#f59e0b")+';font-weight:700;">'+fmt(t.amt)+'</span></div>';});html+='</div>';}
+    html+='</div>';
+  });
+  el("projects-list").innerHTML=html;
+}
+function openProjectModal(){el("p-name").value="";el("p-client").value="";el("p-budget").value="";el("p-status").value="active";openModal("modal-project");}
+function saveProject(){var name=el("p-name").value.trim();if(!name){toast("⚠ Name required!");return;}DB.projects.push({id:uid(),name:name,client:el("p-client").value.trim(),budget:parseFloat(el("p-budget").value)||0,status:el("p-status").value,created:todayStr()});saveDB();closeModal("modal-project");renderProjects();toast("✅ Project created!");}
+function deleteProject(id){if(!confirm("Delete?"))return;DB.projects=DB.projects.filter(function(p){return p.id!==id;});saveDB();renderProjects();toast("🗑 Deleted");}
+function openTxModal(pId,type){
+  el("tx-type").value=type;el("tx-modal-title").textContent=type==="advance"?"Record Advance":"Record Payout";el("tx-date").value=todayStr();el("tx-amount").value="";el("tx-note").value="";
+  el("tx-worker").innerHTML=DB.workers.map(function(w){return'<option value="'+w.id+'">'+w.name+'</option>';}).join("");
+  el("tx-project-sel").innerHTML='<option value="">No project</option>'+DB.projects.map(function(p){return'<option value="'+p.id+'"'+(p.id===pId?" selected":"")+'>'+p.name+'</option>';}).join("");
+  openModal("modal-tx");
+}
+function saveTx(){var amt=parseFloat(el("tx-amount").value);if(!amt){toast("⚠ Amount required!");return;}DB.transactions.push({id:uid(),type:el("tx-type").value,wId:el("tx-worker").value,pId:el("tx-project-sel").value,amt:amt,note:el("tx-note").value.trim(),date:el("tx-date").value,created:new Date().toISOString()});saveDB();closeModal("modal-tx");renderProjects();toast("✅ Recorded!");}
+
+// ── PAYOUTS ───────────────────────────────────────────────────────────────────
+function renderPayouts(){
+  var all=DB.transactions.filter(function(t){return t.type==="payout";}).sort(function(a,b){return b.created<a.created?-1:1;});
+  el("payout-total").textContent=fmt(all.reduce(function(s,t){return s+t.amt;},0));
+  el("payout-count").textContent=all.length+" transactions";
+  var html=all.length===0?'<div class="card" style="text-align:center;color:#8899bb;">No payouts yet</div>':"";
+  all.forEach(function(t){var w=DB.workers.find(function(x){return x.id===t.wId;}),p=DB.projects.find(function(x){return x.id===t.pId;});html+='<div class="card"><div class="row-between"><div><div style="color:#e8f0ff;font-weight:700;">'+(w?w.name:"Unknown")+'</div><div class="sub-text">'+t.date+(p?" • "+p.name:"")+'</div>'+(t.note?'<div class="sub-text">'+t.note+'</div>':'')+' </div><div style="color:#22c55e;font-weight:800;font-size:16px;">'+fmt(t.amt)+'</div></div></div>';});
+  el("payouts-list").innerHTML=html;
+}
+function openPayoutModal(){
+  el("po-date").value=todayStr();el("po-amount").value="";el("po-note").value="";
+  el("po-worker").innerHTML='<option value="">Select worker</option>'+DB.workers.map(function(w){return'<option value="'+w.id+'">'+w.name+'</option>';}).join("");
+  el("po-project").innerHTML='<option value="">No project</option>'+DB.projects.map(function(p){return'<option value="'+p.id+'">'+p.name+'</option>';}).join("");
+  openModal("modal-payout");
+}
+function savePayout(){var wId=el("po-worker").value,amt=parseFloat(el("po-amount").value);if(!wId||!amt){toast("⚠ Worker and amount required!");return;}DB.transactions.push({id:uid(),type:"payout",wId:wId,pId:el("po-project").value,amt:amt,note:el("po-note").value.trim(),date:el("po-date").value,created:new Date().toISOString()});saveDB();closeModal("modal-payout");renderPayouts();toast("✅ Payout recorded!");}
+
+// ── REPORTS ───────────────────────────────────────────────────────────────────
+function renderReports(){
+  var monthEl=el("report-month");if(!monthEl.value)monthEl.value=todayStr().slice(0,7);
+  var selM=monthEl.value,selW=el("report-worker").value;
+  var cur=el("report-worker").value;
+  el("report-worker").innerHTML='<option value="all">All Workers</option>'+DB.workers.map(function(w){return'<option value="'+w.id+'">'+w.name+'</option>';}).join("");
+  el("report-worker").value=cur;
+  var monthDays={};for(var d in DB.attendance){if(d.startsWith(selM))monthDays[d]=DB.attendance[d];}
+  var report=DB.workers.map(function(w){
+    var P=0,H=0,A=0,total=0,earned=0;
+    for(var d in monthDays){var s=monthDays[d][w.id];if(s){total++;if(s==="P")P++;else if(s==="H")H++;else if(s==="A")A++;earned+=w.wage*(ATT[s]?ATT[s].mul:0);}}
+    var paid=DB.transactions.filter(function(t){return t.wId===w.id&&t.type==="payout"&&t.date&&t.date.startsWith(selM);}).reduce(function(s,t){return s+t.amt;},0);
+    return{id:w.id,name:w.name,role:w.role,wage:w.wage,P:P,H:H,A:A,total:total,earned:earned,paid:paid,due:Math.max(0,earned-paid)};
+  });
+  var filtered=selW==="all"?report:report.filter(function(w){return w.id===selW;});
+  var totE=filtered.reduce(function(s,w){return s+w.earned;},0),totP=filtered.reduce(function(s,w){return s+w.paid;},0),totD=filtered.reduce(function(s,w){return s+w.due;},0);
+  el("report-totals").innerHTML=statBox(fmt(totE),"Earned","#22c55e")+statBox(fmt(totP),"Paid","#60a5fa")+statBox(fmt(totD),"Due","#f59e0b");
+  var html="";
+  filtered.forEach(function(w){
+    html+='<div class="card"><div class="row-between" style="margin-bottom:10px;"><div><div style="color:#e8f0ff;font-weight:700;font-size:15px;">'+w.name+'</div><div class="sub-text">'+(w.role||"—")+' • '+fmt(w.wage)+'/day</div></div>'+badge(w.due>0?"Due "+fmt(w.due):"Cleared",w.due>0?"#f59e0b":"#22c55e")+'</div>'+
+    '<div class="grid4" style="margin-bottom:10px;">'+statBox(w.P,"Present","#22c55e")+statBox(w.H,"Half","#f59e0b")+statBox(w.A,"Absent","#ef4444")+statBox(w.total,"Days","#8899bb")+'</div>'+
+    '<div class="grid3">'+statBox(fmt(w.earned),"Earned","#22c55e")+statBox(fmt(w.paid),"Paid","#60a5fa")+statBox(fmt(w.due),"Due","#f59e0b")+'</div></div>';
+  });
+  if(!filtered.length)html='<div class="card" style="text-align:center;color:#8899bb;">No data for this period</div>';
+  el("report-list").innerHTML=html;
+}
+function exportReport(){var data={workers:DB.workers,attendance:DB.attendance,projects:DB.projects,transactions:DB.transactions,exported:new Date().toISOString()};var blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="worktrack-report-"+(el("report-month").value||todayStr().slice(0,7))+".json";a.click();toast("✅ Exported!");}
+
+// ── SYNC ──────────────────────────────────────────────────────────────────────
+function renderSync(){
+  var html="";
+  [{label:"Workers",val:DB.workers.length},{label:"Attendance days",val:Object.keys(DB.attendance).length},{label:"Projects",val:DB.projects.length},{label:"Transactions",val:DB.transactions.length}].forEach(function(m){html+='<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #2a3a5e;font-size:14px;"><span style="color:#8899bb;">'+m.label+'</span><span style="color:#e8f0ff;font-weight:700;">'+m.val+'</span></div>';});
+  el("sync-summary").innerHTML=html;
+}
+function downloadBackup(){var data={workers:DB.workers,attendance:DB.attendance,projects:DB.projects,transactions:DB.transactions,exported:new Date().toISOString()};var blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="worktrack-backup-"+todayStr()+".json";a.click();el("sync-status").innerHTML='<div style="color:#22c55e;font-size:13px;text-align:center;padding:8px;background:#0f1829;border-radius:8px;">✅ Backup downloaded!</div>';}
+function importBackup(event){var file=event.target.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(e){try{var d=JSON.parse(e.target.result);if(d.workers)DB.workers=d.workers;if(d.attendance)DB.attendance=d.attendance;if(d.projects)DB.projects=d.projects;if(d.transactions)DB.transactions=d.transactions;saveDB();el("sync-status").innerHTML='<div style="color:#22c55e;font-size:13px;text-align:center;padding:8px;background:#0f1829;border-radius:8px;">✅ Imported!</div>';renderSync();toast("✅ Restored!");}catch(err){el("sync-status").innerHTML='<div style="color:#ef4444;font-size:13px;text-align:center;padding:8px;background:#0f1829;border-radius:8px;">❌ Invalid file.</div>';}};reader.readAsText(file);event.target.value="";}
+
+// ── MODALS ────────────────────────────────────────────────────────────────────
+function openModal(id){el(id).classList.add("open");}
+function closeModal(id){el(id).classList.remove("open");}
+document.querySelectorAll(".modal-bg").forEach(function(m){m.addEventListener("click",function(e){if(e.target===m)m.classList.remove("open");});});
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+loadDB();
+el("att-date").value=todayStr();
+el("report-month").value=todayStr().slice(0,7);
+renderHome();
+setTimeout(function(){
+  var splash=el("splash");
+  splash.style.transition="opacity .5s";
+  splash.style.opacity="0";
+  setTimeout(function(){splash.style.display="none";},500);
+},1200);
+</script>
+</body>
+</html>
