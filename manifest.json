@@ -1,0 +1,38 @@
+{
+  "name": "WorkTrack",
+  "short_name": "WorkTrack",
+  "description": "Attendance and wage management for workers and projects",
+  "start_url": "index.html",
+  "id": "worktrack",
+  "display": "standalone",
+  "background_color": "#0a1120",
+  "theme_color": "#0a1120",
+  "orientation": "portrait",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
