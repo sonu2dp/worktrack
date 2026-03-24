@@ -6,7 +6,6 @@
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<meta name="apple-mobile-web-app-title" content="WorkTrack"/>
 <meta name="theme-color" content="#0a1120"/>
 <link rel="manifest" href="manifest.json"/>
 <link rel="apple-touch-icon" href="icon-192.png"/>
@@ -21,12 +20,12 @@ select option{background:#0f1829;color:#e8f0ff;}
 .page{display:none;padding:16px 16px 80px;}
 .page.active{display:block;}
 .card{background:#1a2236;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid #2a3a5e;}
-.input-wrap{margin-bottom:14px;}
-.lbl{color:#8899bb;font-size:12px;margin-bottom:6px;font-weight:600;display:block;}
+.iw{margin-bottom:14px;}
+.lb{color:#8899bb;font-size:12px;margin-bottom:6px;font-weight:600;display:block;}
 .inp{width:100%;background:#0f1829;border:1px solid #2a3a5e;border-radius:10px;padding:10px 14px;color:#e8f0ff;font-size:14px;outline:none;font-family:inherit;}
 .inp:focus{border-color:#f59e0b;}
 select.inp{appearance:none;}
-.btn{border-radius:10px;padding:11px 20px;font-size:14px;font-weight:700;cursor:pointer;border:none;font-family:inherit;}
+.btn{border-radius:10px;padding:11px 20px;font-size:14px;font-weight:700;cursor:pointer;border:none;font-family:inherit;transition:opacity .15s;}
 .btn:active{opacity:.75;}
 .bp{background:linear-gradient(135deg,#f59e0b,#d97706);color:#0f1829;}
 .bg{background:#1a2236;color:#e8f0ff;border:1px solid #2a3a5e;}
@@ -59,28 +58,43 @@ select.inp{appearance:none;}
 .mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
 .mt{color:#f59e0b;font-weight:800;font-size:16px;}
 .cb{background:none;border:none;cursor:pointer;color:#8899bb;font-size:20px;}
-#hdr{background:#070d1a;padding:10px 16px 8px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:50;border-bottom:1px solid #1a2236;}
-.hb{background:none;border:1px solid #2a3a5e;border-radius:8px;padding:4px 12px;color:#8899bb;font-size:12px;font-weight:600;cursor:pointer;}
-.hb.on{border-color:#f59e0b;color:#f59e0b;background:#f59e0b11;}
+#hdr{background:#070d1a;padding:8px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:50;border-bottom:1px solid #1a2236;}
+.hb{background:none;border:1px solid #2a3a5e;border-radius:8px;padding:4px 10px;color:#8899bb;font-size:11px;font-weight:600;cursor:pointer;}
+.hb.on{border-color:#f59e0b;color:#f59e0b;}
 .emp{text-align:center;padding:32px;color:#445;}
-#tst{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#1a2236;border:1px solid #f59e0b;color:#f59e0b;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:999;display:none;}
+#tst{position:fixed;top:62px;left:50%;transform:translateX(-50%);background:#1a2236;border:1px solid #f59e0b;color:#f59e0b;padding:8px 18px;border-radius:10px;font-size:12px;font-weight:600;z-index:999;display:none;white-space:nowrap;max-width:90vw;}
 #spl{position:fixed;inset:0;background:#0a1120;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+
+/* ── SYNC INDICATOR ── */
+#sync-bar{position:fixed;top:0;left:0;right:0;height:3px;background:transparent;z-index:9998;}
+#sync-bar .fill{height:100%;width:0;background:linear-gradient(90deg,#f59e0b,#22c55e);transition:width .4s;}
+#drive-status{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px;cursor:pointer;}
+#drive-status.connected{background:#22c55e22;color:#22c55e;border:1px solid #22c55e44;}
+#drive-status.disconnected{background:#ef444422;color:#ef4444;border:1px solid #ef444444;}
+#drive-status.syncing{background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b44;}
+#drive-status.pending{background:#60a5fa22;color:#60a5fa;border:1px solid #60a5fa44;}
 </style>
 </head>
 <body>
 
+<div id="sync-bar"><div class="fill" id="sync-fill"></div></div>
+
 <div id="spl">
   <div style="font-size:64px;">⚒️</div>
   <div style="color:#f59e0b;font-size:28px;font-weight:800;">WorkTrack</div>
-  <div style="color:#8899bb;font-size:14px;">Loading...</div>
+  <div style="color:#8899bb;font-size:14px;" id="spl-msg">Loading...</div>
 </div>
 <div id="tst"></div>
 
+<!-- HEADER -->
 <div id="hdr">
-  <div style="color:#f59e0b;font-weight:800;font-size:16px;">⚒ WorkTrack</div>
-  <div style="display:flex;gap:8px;">
+  <div style="color:#f59e0b;font-weight:800;font-size:15px;">⚒ WorkTrack</div>
+  <div style="display:flex;gap:6px;align-items:center;">
+    <div id="drive-status" class="disconnected" onclick="go('sync')">
+      <span id="ds-icon">☁</span>
+      <span id="ds-text">Sign In</span>
+    </div>
     <button class="hb" id="hb-rep" onclick="go('reports')">Reports</button>
-    <button class="hb" id="hb-syn" onclick="go('sync')">Sync</button>
   </div>
 </div>
 
@@ -102,7 +116,7 @@ select.inp{appearance:none;}
 <div class="page" id="page-attendance">
   <div class="pt">Attendance</div>
   <div class="card">
-    <div class="input-wrap"><label class="lbl">Select Date</label><input type="date" class="inp" id="adate" onchange="rAtt()"/></div>
+    <div class="iw"><label class="lb">Select Date</label><input type="date" class="inp" id="adate" onchange="rAtt()"/></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <button class="btn bs sm" onclick="mall('P')">✓ All Present</button>
       <button class="btn bd sm" onclick="mall('A')">✗ All Absent</button>
@@ -134,37 +148,86 @@ select.inp{appearance:none;}
 <div class="page" id="page-reports">
   <div class="rb" style="margin-bottom:16px;"><div class="pt" style="margin:0">Reports</div><button class="btn bg sm" onclick="exRep()">⬇ Export</button></div>
   <div class="card">
-    <div class="input-wrap"><label class="lbl">Month</label><input type="month" class="inp" id="rmon" onchange="rRep()"/></div>
-    <div class="input-wrap" style="margin:0"><label class="lbl">Worker</label><select class="inp" id="rwrk" onchange="rRep()"><option value="all">All Workers</option></select></div>
+    <div class="iw"><label class="lb">Month</label><input type="month" class="inp" id="rmon" onchange="rRep()"/></div>
+    <div class="iw" style="margin:0"><label class="lb">Worker</label><select class="inp" id="rwrk" onchange="rRep()"><option value="all">All Workers</option></select></div>
   </div>
   <div class="g3" id="rtot" style="margin-bottom:16px;"></div>
   <div id="rlist"></div>
 </div>
 
-<!-- SYNC -->
+<!-- SYNC PAGE -->
 <div class="page" id="page-sync">
-  <div class="pt">Sync &amp; Backup</div>
-  <div class="card" style="background:linear-gradient(135deg,#0d1f3b,#1a2236);border:1px solid #60a5fa44;">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;"><span style="font-size:28px;">☁</span><div><div style="color:#e8f0ff;font-weight:700;">Google Drive Sync</div><div class="sub">Manual backup</div></div></div>
-    <div style="background:#0f1829;border-radius:10px;padding:12px;font-size:13px;color:#8899bb;line-height:1.8;">
-      <b style="color:#60a5fa;">Step 1:</b> Download Backup below<br/>
-      <b style="color:#60a5fa;">Step 2:</b> Open Google Drive app<br/>
-      <b style="color:#60a5fa;">Step 3:</b> Tap + → Upload → select .json file<br/>
-      <b style="color:#60a5fa;">Step 4:</b> Restore: download from Drive → Import below
+  <div class="pt">Google Drive Sync</div>
+
+  <!-- Connection card -->
+  <div class="card" id="sync-connect-card" style="background:linear-gradient(135deg,#0d1f3b,#1a2236);border:1px solid #60a5fa44;">
+    <div style="text-align:center;padding:8px 0 16px;">
+      <div style="font-size:48px;margin-bottom:12px;">☁️</div>
+      <div style="color:#e8f0ff;font-weight:800;font-size:18px;margin-bottom:6px;">Google Drive Sync</div>
+      <div style="color:#8899bb;font-size:13px;margin-bottom:20px;">Your data auto-saves to Google Drive every time you make a change. Access from any device.</div>
+      <div id="sync-user-info" style="display:none;margin-bottom:16px;">
+        <div style="color:#22c55e;font-weight:700;" id="sync-user-name"></div>
+        <div style="color:#8899bb;font-size:12px;" id="sync-user-email"></div>
+      </div>
+      <div id="sync-btn-area"></div>
     </div>
   </div>
+
+  <!-- Sync status card -->
+  <div class="card" id="sync-status-card" style="display:none;">
+    <div class="st">Sync Status</div>
+    <div id="sync-details"></div>
+  </div>
+
+  <!-- Manual controls -->
+  <div class="card" id="sync-controls-card" style="display:none;">
+    <div class="st">Manual Controls</div>
+    <div style="display:flex;gap:10px;margin-bottom:10px;">
+      <button class="btn bp fw" onclick="manualUpload()">⬆ Upload to Drive</button>
+      <button class="btn bg fw" onclick="manualDownload()">⬇ Download from Drive</button>
+    </div>
+    <div style="color:#8899bb;font-size:12px;line-height:1.6;">
+      • <b style="color:#e8f0ff;">Auto-sync:</b> Saves automatically on every change<br/>
+      • <b style="color:#e8f0ff;">Upload:</b> Force save current data to Drive now<br/>
+      • <b style="color:#e8f0ff;">Download:</b> Load latest data from Drive
+    </div>
+  </div>
+
+  <!-- Setup instructions -->
+  <div class="card" id="sync-setup-card">
+    <div class="st">⚙️ Setup Instructions</div>
+    <div style="background:#0f1829;border-radius:10px;padding:14px;font-size:13px;color:#8899bb;line-height:1.9;">
+      <b style="color:#f59e0b;">Step 1:</b> Go to <span style="color:#60a5fa;">console.cloud.google.com</span><br/>
+      <b style="color:#f59e0b;">Step 2:</b> Create project → Enable <b style="color:#e8f0ff;">Google Drive API</b><br/>
+      <b style="color:#f59e0b;">Step 3:</b> Create credentials → <b style="color:#e8f0ff;">OAuth 2.0 Client ID</b><br/>
+      <b style="color:#f59e0b;">Step 4:</b> Type: <b style="color:#e8f0ff;">Web Application</b><br/>
+      <b style="color:#f59e0b;">Step 5:</b> Add your GitHub Pages URL to <b style="color:#e8f0ff;">Authorized origins</b><br/>
+      <b style="color:#f59e0b;">Step 6:</b> Copy Client ID and paste below 👇
+    </div>
+    <div style="margin-top:14px;">
+      <div class="iw"><label class="lb">Your Google OAuth Client ID</label>
+        <input type="text" class="inp" id="client-id-input" placeholder="xxxx.apps.googleusercontent.com"/>
+      </div>
+      <button class="btn bp fw" onclick="saveClientId()">Save &amp; Connect to Google Drive</button>
+      <div id="cid-status" style="margin-top:8px;font-size:12px;"></div>
+    </div>
+  </div>
+
+  <!-- Local backup -->
   <div class="card">
-    <div class="st">Backup &amp; Restore</div>
-    <div style="display:flex;gap:10px;margin-bottom:12px;">
-      <button class="btn bp fw" onclick="dlBk()">⬇ Download Backup</button>
-      <label style="flex:1;"><div class="btn bg fw" style="text-align:center;">📂 Import</div><input type="file" accept=".json" onchange="impBk(event)" style="display:none;"/></label>
+    <div class="st">📦 Local Backup</div>
+    <div style="display:flex;gap:10px;margin-bottom:10px;">
+      <button class="btn bg fw" onclick="dlBk()">⬇ Download JSON</button>
+      <label style="flex:1;"><div class="btn bg fw" style="text-align:center;">📂 Import JSON</div>
+        <input type="file" accept=".json" onchange="impBk(event)" style="display:none;"/>
+      </label>
     </div>
-    <div id="sstat"></div>
   </div>
-  <div class="card"><div class="st">📊 Data Summary</div><div id="ssum"></div></div>
+
+  <div class="card"><div class="st">📊 Data</div><div id="ssum"></div></div>
 </div>
 
-<!-- NAV -->
+<!-- BOTTOM NAV -->
 <div id="nav">
   <button class="nb" id="nav-home" onclick="go('home')"><span class="ni">🏠</span><span class="nl" style="color:#f59e0b;">Home</span><div class="nd"></div></button>
   <button class="nb" id="nav-workers" onclick="go('workers')"><span class="ni">👷</span><span class="nl">Workers</span></button>
@@ -176,56 +239,67 @@ select.inp{appearance:none;}
 <!-- MODALS -->
 <div class="mb" id="mw"><div class="mx">
   <div class="mh"><div class="mt" id="wmtit">Add Worker</div><button class="cb" onclick="cm('mw')">✕</button></div>
-  <div class="input-wrap"><label class="lbl">Full Name *</label><input type="text" class="inp" id="wn" placeholder="Rajesh Kumar"/></div>
-  <div class="input-wrap"><label class="lbl">Role</label><input type="text" class="inp" id="wr" placeholder="Mason, Carpenter"/></div>
-  <div class="input-wrap"><label class="lbl">Daily Wage (₹) *</label><input type="number" class="inp" id="ww" placeholder="600"/></div>
-  <div class="input-wrap"><label class="lbl">Phone</label><input type="tel" class="inp" id="wp" placeholder="9876543210"/></div>
+  <div class="iw"><label class="lb">Full Name *</label><input type="text" class="inp" id="wn" placeholder="Rajesh Kumar"/></div>
+  <div class="iw"><label class="lb">Role</label><input type="text" class="inp" id="wr" placeholder="Mason, Carpenter"/></div>
+  <div class="iw"><label class="lb">Daily Wage (₹) *</label><input type="number" class="inp" id="ww" placeholder="600"/></div>
+  <div class="iw"><label class="lb">Phone</label><input type="tel" class="inp" id="wp" placeholder="9876543210"/></div>
   <div style="display:flex;gap:10px;"><button class="btn bg fw" onclick="cm('mw')">Cancel</button><button class="btn bp fw" onclick="svW()">Save</button></div>
 </div></div>
 
 <div class="mb" id="mp"><div class="mx">
   <div class="mh"><div class="mt">New Project</div><button class="cb" onclick="cm('mp')">✕</button></div>
-  <div class="input-wrap"><label class="lbl">Project Name *</label><input type="text" class="inp" id="pn" placeholder="House Construction"/></div>
-  <div class="input-wrap"><label class="lbl">Client</label><input type="text" class="inp" id="pc" placeholder="Mr. Sharma"/></div>
-  <div class="input-wrap"><label class="lbl">Budget (₹)</label><input type="number" class="inp" id="pb" placeholder="500000"/></div>
-  <div class="input-wrap"><label class="lbl">Status</label><select class="inp" id="ps"><option value="active">Active</option><option value="completed">Completed</option><option value="on-hold">On Hold</option></select></div>
+  <div class="iw"><label class="lb">Project Name *</label><input type="text" class="inp" id="pn" placeholder="House Construction"/></div>
+  <div class="iw"><label class="lb">Client</label><input type="text" class="inp" id="pc" placeholder="Mr. Sharma"/></div>
+  <div class="iw"><label class="lb">Budget (₹)</label><input type="number" class="inp" id="pb" placeholder="500000"/></div>
+  <div class="iw"><label class="lb">Status</label><select class="inp" id="ps"><option value="active">Active</option><option value="completed">Completed</option><option value="on-hold">On Hold</option></select></div>
   <div style="display:flex;gap:10px;"><button class="btn bg fw" onclick="cm('mp')">Cancel</button><button class="btn bp fw" onclick="svP()">Create</button></div>
 </div></div>
 
-<div class="mb" id="mt"><div class="mx">
-  <div class="mh"><div class="mt" id="ttit">Record</div><button class="cb" onclick="cm('mt')">✕</button></div>
+<div class="mb" id="mtx"><div class="mx">
+  <div class="mh"><div class="mt" id="ttit">Record</div><button class="cb" onclick="cm('mtx')">✕</button></div>
   <input type="hidden" id="ttyp"/>
-  <div class="input-wrap"><label class="lbl">Worker</label><select class="inp" id="twrk"></select></div>
-  <div class="input-wrap"><label class="lbl">Amount (₹) *</label><input type="number" class="inp" id="tamt" placeholder="Enter amount"/></div>
-  <div class="input-wrap"><label class="lbl">Project</label><select class="inp" id="tprj"><option value="">No project</option></select></div>
-  <div class="input-wrap"><label class="lbl">Date</label><input type="date" class="inp" id="tdat"/></div>
-  <div class="input-wrap"><label class="lbl">Note</label><input type="text" class="inp" id="tnot" placeholder="Optional"/></div>
-  <div style="display:flex;gap:10px;"><button class="btn bg fw" onclick="cm('mt')">Cancel</button><button class="btn bp fw" onclick="svT()">Record</button></div>
+  <div class="iw"><label class="lb">Worker</label><select class="inp" id="twrk"></select></div>
+  <div class="iw"><label class="lb">Amount (₹) *</label><input type="number" class="inp" id="tamt" placeholder="Enter amount"/></div>
+  <div class="iw"><label class="lb">Project</label><select class="inp" id="tprj"><option value="">No project</option></select></div>
+  <div class="iw"><label class="lb">Date</label><input type="date" class="inp" id="tdat"/></div>
+  <div class="iw"><label class="lb">Note</label><input type="text" class="inp" id="tnot" placeholder="Optional"/></div>
+  <div style="display:flex;gap:10px;"><button class="btn bg fw" onclick="cm('mtx')">Cancel</button><button class="btn bp fw" onclick="svT()">Record</button></div>
 </div></div>
 
 <div class="mb" id="mo"><div class="mx">
   <div class="mh"><div class="mt">Record Payout</div><button class="cb" onclick="cm('mo')">✕</button></div>
-  <div class="input-wrap"><label class="lbl">Worker *</label><select class="inp" id="owrk"><option value="">Select worker</option></select></div>
-  <div class="input-wrap"><label class="lbl">Amount (₹) *</label><input type="number" class="inp" id="oamt" placeholder="Enter amount"/></div>
-  <div class="input-wrap"><label class="lbl">Project</label><select class="inp" id="oprj"><option value="">No project</option></select></div>
-  <div class="input-wrap"><label class="lbl">Date</label><input type="date" class="inp" id="odat"/></div>
-  <div class="input-wrap"><label class="lbl">Note</label><input type="text" class="inp" id="onot" placeholder="Optional"/></div>
+  <div class="iw"><label class="lb">Worker *</label><select class="inp" id="owrk"><option value="">Select worker</option></select></div>
+  <div class="iw"><label class="lb">Amount (₹) *</label><input type="number" class="inp" id="oamt" placeholder="Enter amount"/></div>
+  <div class="iw"><label class="lb">Project</label><select class="inp" id="oprj"><option value="">No project</option></select></div>
+  <div class="iw"><label class="lb">Date</label><input type="date" class="inp" id="odat"/></div>
+  <div class="iw"><label class="lb">Note</label><input type="text" class="inp" id="onot" placeholder="Optional"/></div>
   <div style="display:flex;gap:10px;"><button class="btn bg fw" onclick="cm('mo')">Cancel</button><button class="btn bp fw" onclick="svO()">Record</button></div>
 </div></div>
 
 <script>
-// ── Data ──────────────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════════════════════════
 var D={w:[],a:{},p:[],t:[]};
 var ewid=null;
-var ATT={P:{l:"Present",c:"#22c55e",s:"P",m:1},H:{l:"Half Day",c:"#f59e0b",s:"H",m:0.5},A:{l:"Absent",c:"#ef4444",s:"A",m:0},L:{l:"Leave",c:"#8b5cf6",s:"L",m:0}};
+var ATT={
+  P:{l:"Present",c:"#22c55e",s:"P",m:1},
+  H:{l:"Half Day",c:"#f59e0b",s:"H",m:0.5},
+  A:{l:"Absent",c:"#ef4444",s:"A",m:0},
+  L:{l:"Leave",c:"#8b5cf6",s:"L",m:0}
+};
 
-function sv(){try{localStorage.setItem("wt_w",JSON.stringify(D.w));localStorage.setItem("wt_a",JSON.stringify(D.a));localStorage.setItem("wt_p",JSON.stringify(D.p));localStorage.setItem("wt_t",JSON.stringify(D.t));}catch(e){}}
-function ld(){try{var w=localStorage.getItem("wt_w"),a=localStorage.getItem("wt_a"),p=localStorage.getItem("wt_p"),t=localStorage.getItem("wt_t");if(w)D.w=JSON.parse(w);if(a)D.a=JSON.parse(a);if(p)D.p=JSON.parse(p);if(t)D.t=JSON.parse(t);}catch(e){}}
+function lsv(){try{localStorage.setItem("wt_w",JSON.stringify(D.w));localStorage.setItem("wt_a",JSON.stringify(D.a));localStorage.setItem("wt_p",JSON.stringify(D.p));localStorage.setItem("wt_t",JSON.stringify(D.t));}catch(e){}}
+function lld(){try{var w=localStorage.getItem("wt_w"),a=localStorage.getItem("wt_a"),p=localStorage.getItem("wt_p"),t=localStorage.getItem("wt_t");if(w)D.w=JSON.parse(w);if(a)D.a=JSON.parse(a);if(p)D.p=JSON.parse(p);if(t)D.t=JSON.parse(t);}catch(e){}}
+
+// Save + trigger auto-sync
+function sv(){lsv();scheduleDriveSync();}
+
 function uid(){return Math.random().toString(36).slice(2,10);}
 function td(){return new Date().toISOString().slice(0,10);}
 function fm(n){return"₹"+Number(n||0).toLocaleString("en-IN");}
 function el(id){return document.getElementById(id);}
-function tst(msg){var t=el("tst");t.textContent=msg;t.style.display="block";setTimeout(function(){t.style.display="none";},2500);}
+function tst(msg,col){var t=el("tst");t.textContent=msg;t.style.borderColor=col||"#f59e0b";t.style.color=col||"#f59e0b";t.style.display="block";setTimeout(function(){t.style.display="none";},3000);}
 function bdg(txt,col){return'<span class="bdg" style="background:'+col+'22;color:'+col+';border:1px solid '+col+'44;">'+txt+'</span>';}
 function stb(v,l,c){return'<div class="sb"><div class="sv" style="color:'+c+';">'+v+'</div><div class="sl">'+l+'</div></div>';}
 function wEar(w){var s=0;for(var d in D.a){var x=D.a[d][w.id];if(x&&ATT[x])s+=w.wage*ATT[x].m;}return s;}
@@ -234,40 +308,333 @@ function om(id){el(id).classList.add("open");}
 function cm(id){el(id).classList.remove("open");}
 document.querySelectorAll(".mb").forEach(function(m){m.addEventListener("click",function(e){if(e.target===m)m.classList.remove("open");});});
 
-// ── Navigation ────────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+// GOOGLE DRIVE SYNC
+// ══════════════════════════════════════════════════════════════════
+var GDrive = {
+  clientId: null,
+  accessToken: null,
+  tokenExpiry: null,
+  fileId: null,
+  userName: null,
+  userEmail: null,
+  syncTimer: null,
+  lastSynced: null,
+  isSyncing: false,
+  FILENAME: "worktrack-data.json",
+  SCOPE: "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email"
+};
+
+// Load saved credentials
+function gdriveLoad(){
+  try{
+    GDrive.clientId = localStorage.getItem("wt_cid") || null;
+    GDrive.accessToken = localStorage.getItem("wt_tok") || null;
+    GDrive.tokenExpiry = parseInt(localStorage.getItem("wt_tokexp")||"0");
+    GDrive.fileId = localStorage.getItem("wt_fid") || null;
+    GDrive.userName = localStorage.getItem("wt_uname") || null;
+    GDrive.userEmail = localStorage.getItem("wt_uemail") || null;
+    GDrive.lastSynced = localStorage.getItem("wt_synced") || null;
+  }catch(e){}
+}
+
+function gdriveSave(){
+  try{
+    if(GDrive.clientId) localStorage.setItem("wt_cid", GDrive.clientId);
+    if(GDrive.accessToken) localStorage.setItem("wt_tok", GDrive.accessToken);
+    if(GDrive.tokenExpiry) localStorage.setItem("wt_tokexp", GDrive.tokenExpiry);
+    if(GDrive.fileId) localStorage.setItem("wt_fid", GDrive.fileId);
+    if(GDrive.userName) localStorage.setItem("wt_uname", GDrive.userName);
+    if(GDrive.userEmail) localStorage.setItem("wt_uemail", GDrive.userEmail);
+    if(GDrive.lastSynced) localStorage.setItem("wt_synced", GDrive.lastSynced);
+  }catch(e){}
+}
+
+function isTokenValid(){
+  return GDrive.accessToken && GDrive.tokenExpiry && Date.now() < GDrive.tokenExpiry - 60000;
+}
+
+function updateDriveStatusBar(){
+  var ds = el("drive-status");
+  if(!ds) return;
+  if(!GDrive.clientId){
+    ds.className="disconnected"; el("ds-icon").textContent="☁"; el("ds-text").textContent="Sign In";
+  } else if(GDrive.isSyncing){
+    ds.className="syncing"; el("ds-icon").textContent="🔄"; el("ds-text").textContent="Syncing...";
+  } else if(isTokenValid()){
+    ds.className="connected"; el("ds-icon").textContent="✅"; el("ds-text").textContent="Synced";
+  } else if(GDrive.accessToken){
+    ds.className="pending"; el("ds-icon").textContent="⏳"; el("ds-text").textContent="Reconnect";
+  } else {
+    ds.className="disconnected"; el("ds-icon").textContent="☁"; el("ds-text").textContent="Sign In";
+  }
+}
+
+function showSyncBar(){
+  var f=el("sync-fill");
+  f.style.width="0%";
+  f.style.transition="none";
+  setTimeout(function(){f.style.transition="width 1.5s";f.style.width="100%";},50);
+  setTimeout(function(){f.style.transition="opacity .5s";f.style.opacity="0";setTimeout(function(){f.style.width="0";f.style.opacity="1";},500);},1800);
+}
+
+function saveClientId(){
+  var cid = el("client-id-input").value.trim();
+  if(!cid || !cid.includes("apps.googleusercontent.com")){
+    el("cid-status").innerHTML='<span style="color:#ef4444;">❌ Invalid Client ID. Must end with .apps.googleusercontent.com</span>';
+    return;
+  }
+  GDrive.clientId = cid;
+  gdriveSave();
+  el("cid-status").innerHTML='<span style="color:#22c55e;">✅ Saved! Click Connect below to sign in.</span>';
+  rSync();
+  setTimeout(function(){gdriveConnect();},500);
+}
+
+function gdriveConnect(){
+  if(!GDrive.clientId){ tst("⚠ Enter Client ID first"); go("sync"); return; }
+  loadGIS(function(){
+    var client = google.accounts.oauth2.initTokenClient({
+      client_id: GDrive.clientId,
+      scope: GDrive.SCOPE,
+      callback: function(resp){
+        if(resp.error){ tst("❌ Sign in failed: "+resp.error,"#ef4444"); return; }
+        GDrive.accessToken = resp.access_token;
+        GDrive.tokenExpiry = Date.now() + (resp.expires_in * 1000);
+        gdriveSave();
+        fetchUserInfo(function(){
+          tst("✅ Connected to Google Drive!","#22c55e");
+          updateDriveStatusBar();
+          rSync();
+          // Download existing data on first connect
+          driveDownloadData(function(ok){
+            if(!ok){ driveUploadData(function(){}); }
+            else { tst("✅ Data loaded from Drive!","#22c55e"); }
+          });
+        });
+      }
+    });
+    client.requestAccessToken();
+  });
+}
+
+function gdriveDisconnect(){
+  if(GDrive.accessToken && window.google && google.accounts){
+    try{ google.accounts.oauth2.revoke(GDrive.accessToken, function(){}); }catch(e){}
+  }
+  GDrive.accessToken=null; GDrive.tokenExpiry=null; GDrive.fileId=null;
+  GDrive.userName=null; GDrive.userEmail=null;
+  localStorage.removeItem("wt_tok"); localStorage.removeItem("wt_tokexp");
+  localStorage.removeItem("wt_fid"); localStorage.removeItem("wt_uname");
+  localStorage.removeItem("wt_uemail");
+  updateDriveStatusBar(); rSync();
+  tst("Disconnected from Google Drive");
+}
+
+function fetchUserInfo(cb){
+  if(!isTokenValid()){cb&&cb();return;}
+  fetch("https://www.googleapis.com/oauth2/v2/userinfo",{
+    headers:{Authorization:"Bearer "+GDrive.accessToken}
+  }).then(function(r){return r.json();}).then(function(u){
+    GDrive.userName = u.name || "Google User";
+    GDrive.userEmail = u.email || "";
+    gdriveSave();
+    cb&&cb();
+  }).catch(function(){cb&&cb();});
+}
+
+// Schedule auto-sync with debounce (2 seconds after last change)
+function scheduleDriveSync(){
+  if(!GDrive.clientId || !isTokenValid()) return;
+  clearTimeout(GDrive.syncTimer);
+  GDrive.syncTimer = setTimeout(function(){
+    driveUploadData(function(ok){
+      if(ok){ GDrive.lastSynced=new Date().toLocaleTimeString(); gdriveSave(); updateDriveStatusBar(); }
+    });
+  }, 2000);
+  // Update status to show pending
+  if(GDrive.clientId && isTokenValid()){
+    el("ds-icon").textContent="⏳"; el("ds-text").textContent="Saving...";
+    el("drive-status").className="pending";
+  }
+}
+
+// Re-authenticate silently
+function ensureToken(cb){
+  if(isTokenValid()){cb(true);return;}
+  if(!GDrive.clientId){cb(false);return;}
+  loadGIS(function(){
+    try{
+      var client=google.accounts.oauth2.initTokenClient({
+        client_id:GDrive.clientId,
+        scope:GDrive.SCOPE,
+        prompt:"",
+        callback:function(resp){
+          if(resp.error){cb(false);return;}
+          GDrive.accessToken=resp.access_token;
+          GDrive.tokenExpiry=Date.now()+(resp.expires_in*1000);
+          gdriveSave(); cb(true);
+        }
+      });
+      client.requestAccessToken({prompt:""});
+    }catch(e){cb(false);}
+  });
+}
+
+function driveUploadData(cb){
+  ensureToken(function(ok){
+    if(!ok){cb&&cb(false);return;}
+    GDrive.isSyncing=true; updateDriveStatusBar();
+    var data={workers:D.w,attendance:D.a,projects:D.p,transactions:D.t,updated:new Date().toISOString(),version:1};
+    var body=JSON.stringify(data,null,2);
+    var doUpload=function(fileId){
+      var url=fileId
+        ?"https://www.googleapis.com/upload/drive/v3/files/"+fileId+"?uploadType=media"
+        :"https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart";
+      if(fileId){
+        fetch(url,{method:"PATCH",headers:{"Authorization":"Bearer "+GDrive.accessToken,"Content-Type":"application/json"},body:body})
+        .then(function(r){return r.json();})
+        .then(function(f){GDrive.isSyncing=false;showSyncBar();gdriveSave();cb&&cb(true);updateDriveStatusBar();})
+        .catch(function(){GDrive.isSyncing=false;cb&&cb(false);updateDriveStatusBar();});
+      } else {
+        var meta=JSON.stringify({name:GDrive.FILENAME,mimeType:"application/json"});
+        var boundary="boundary"+Date.now();
+        var multipart="--"+boundary+"\r\nContent-Type: application/json\r\n\r\n"+meta+"\r\n--"+boundary+"\r\nContent-Type: application/json\r\n\r\n"+body+"\r\n--"+boundary+"--";
+        fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",{
+          method:"POST",
+          headers:{"Authorization":"Bearer "+GDrive.accessToken,"Content-Type":"multipart/related; boundary="+boundary},
+          body:multipart
+        }).then(function(r){return r.json();})
+        .then(function(f){GDrive.fileId=f.id;GDrive.isSyncing=false;showSyncBar();gdriveSave();cb&&cb(true);updateDriveStatusBar();})
+        .catch(function(){GDrive.isSyncing=false;cb&&cb(false);updateDriveStatusBar();});
+      }
+    };
+    if(GDrive.fileId){doUpload(GDrive.fileId);}
+    else{
+      // Search for existing file
+      fetch("https://www.googleapis.com/drive/v3/files?q=name%3D%27"+GDrive.FILENAME+"%27+and+trashed%3Dfalse&fields=files(id,name)",{
+        headers:{Authorization:"Bearer "+GDrive.accessToken}
+      }).then(function(r){return r.json();})
+      .then(function(res){
+        if(res.files&&res.files.length>0){GDrive.fileId=res.files[0].id;doUpload(GDrive.fileId);}
+        else{doUpload(null);}
+      }).catch(function(){doUpload(null);});
+    }
+  });
+}
+
+function driveDownloadData(cb){
+  ensureToken(function(ok){
+    if(!ok){cb&&cb(false);return;}
+    var doDownload=function(fileId){
+      fetch("https://www.googleapis.com/drive/v3/files/"+fileId+"?alt=media",{
+        headers:{Authorization:"Bearer "+GDrive.accessToken}
+      }).then(function(r){return r.json();})
+      .then(function(data){
+        if(data.workers) D.w=data.workers;
+        if(data.attendance) D.a=data.attendance;
+        if(data.projects) D.p=data.projects;
+        if(data.transactions) D.t=data.transactions;
+        lsv(); cb&&cb(true);
+        rHome(); rSync();
+      }).catch(function(){cb&&cb(false);});
+    };
+    if(GDrive.fileId){doDownload(GDrive.fileId);}
+    else{
+      fetch("https://www.googleapis.com/drive/v3/files?q=name%3D%27"+GDrive.FILENAME+"%27+and+trashed%3Dfalse&fields=files(id)",{
+        headers:{Authorization:"Bearer "+GDrive.accessToken}
+      }).then(function(r){return r.json();})
+      .then(function(res){
+        if(res.files&&res.files.length>0){GDrive.fileId=res.files[0].id;gdriveSave();doDownload(GDrive.fileId);}
+        else{cb&&cb(false);}
+      }).catch(function(){cb&&cb(false);});
+    }
+  });
+}
+
+function manualUpload(){
+  if(!GDrive.clientId){tst("⚠ Sign in to Google Drive first");return;}
+  driveUploadData(function(ok){
+    tst(ok?"✅ Uploaded to Drive!":"❌ Upload failed","ok"?null:"#ef4444");
+    rSync();
+  });
+}
+
+function manualDownload(){
+  if(!GDrive.clientId){tst("⚠ Sign in to Google Drive first");return;}
+  driveDownloadData(function(ok){
+    if(ok){tst("✅ Data loaded from Drive!","#22c55e");renderPage(currentPage);}
+    else tst("❌ No data found on Drive","#ef4444");
+    rSync();
+  });
+}
+
+// Load GIS script once
+var gisLoaded=false;
+var gisCallbacks=[];
+function loadGIS(cb){
+  if(gisLoaded){cb();return;}
+  gisCallbacks.push(cb);
+  if(document.getElementById("gis-script")) return;
+  var s=document.createElement("script");
+  s.id="gis-script";
+  s.src="https://accounts.google.com/gsi/client";
+  s.async=true;
+  s.onload=function(){gisLoaded=true;gisCallbacks.forEach(function(f){f();});gisCallbacks=[];};
+  document.head.appendChild(s);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════════════════════════
 var NAV=["home","workers","attendance","projects","payouts"];
+var currentPage="home";
 function go(pg){
   document.querySelectorAll(".page").forEach(function(p){p.classList.remove("active");});
   el("page-"+pg).classList.add("active");
+  currentPage=pg;
   NAV.forEach(function(p){
     var b=el("nav-"+p);if(!b)return;
     var l=b.querySelector(".nl"),d=b.querySelector(".nd");
     if(p===pg){l.style.color="#f59e0b";if(!d){var x=document.createElement("div");x.className="nd";b.appendChild(x);}}
     else{l.style.color="#445";if(d)d.remove();}
   });
-  ["rep","syn"].forEach(function(p){var b=el("hb-"+p);if(b)b.className="hb"+(({rep:"reports",syn:"sync"}[p]===pg)?" on":"");});
-  if(pg==="home")rHome();else if(pg==="workers")rWork();else if(pg==="attendance")rAtt();else if(pg==="projects")rProj();else if(pg==="payouts")rPay();else if(pg==="reports")rRep();else if(pg==="sync")rSync();
+  var hbr=el("hb-rep");if(hbr)hbr.className="hb"+(pg==="reports"?" on":"");
+  renderPage(pg);
+}
+function renderPage(pg){
+  if(pg==="home")rHome();else if(pg==="workers")rWork();else if(pg==="attendance")rAtt();
+  else if(pg==="projects")rProj();else if(pg==="payouts")rPay();
+  else if(pg==="reports")rRep();else if(pg==="sync")rSync();
 }
 
-// ── HOME ──────────────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+// HOME
+// ══════════════════════════════════════════════════════════════════
 function rHome(){
   el("tlbl").textContent="Today — "+new Date().toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"short"});
   var t=td(),tm=D.a[t]||{},pr=0,hf=0;
   for(var k in tm){if(tm[k]==="P")pr++;if(tm[k]==="H")hf++;}
   var dues=0;D.w.forEach(function(w){dues+=Math.max(0,wEar(w)-wPaid(w));});
   var ap=D.p.filter(function(p){return p.status==="active";}).length;
-  el("dstats").innerHTML='<div class="card" style="text-align:center;"><div style="font-size:24px;margin-bottom:4px;">👷</div><div style="font-size:20px;font-weight:800;color:#60a5fa;">'+D.w.length+'</div><div style="font-size:11px;color:#8899bb;">Workers</div></div>'+
+  el("dstats").innerHTML=
+    '<div class="card" style="text-align:center;"><div style="font-size:24px;margin-bottom:4px;">👷</div><div style="font-size:20px;font-weight:800;color:#60a5fa;">'+D.w.length+'</div><div style="font-size:11px;color:#8899bb;">Workers</div></div>'+
     '<div class="card" style="text-align:center;"><div style="font-size:24px;margin-bottom:4px;">✅</div><div style="font-size:20px;font-weight:800;color:#22c55e;">'+(pr+hf*0.5)+'</div><div style="font-size:11px;color:#8899bb;">Present Today</div></div>'+
     '<div class="card" style="text-align:center;"><div style="font-size:24px;margin-bottom:4px;">💸</div><div style="font-size:18px;font-weight:800;color:#f59e0b;">'+fm(dues)+'</div><div style="font-size:11px;color:#8899bb;">Total Dues</div></div>'+
     '<div class="card" style="text-align:center;"><div style="font-size:24px;margin-bottom:4px;">🏗</div><div style="font-size:20px;font-weight:800;color:#a78bfa;">'+ap+'</div><div style="font-size:11px;color:#8899bb;">Projects</div></div>';
   var h=D.w.length===0?'<div style="color:#8899bb;font-size:13px;">No workers yet.</div>':"";
   D.w.forEach(function(w){var s=tm[w.id],a=s?ATT[s]:null;h+='<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #2a3a5e;"><div><div style="color:#e8f0ff;font-weight:600;font-size:14px;">'+w.name+'</div><div class="sub">'+(w.role||"—")+'</div></div>'+(a?bdg(a.l,a.c):'<span style="color:#445;">—</span>')+'</div>';});
   el("datt").innerHTML=h;
-  if(D.p.length>0){el("dproj").style.display="block";var ph="";D.p.slice(0,3).forEach(function(p){var sp=D.t.filter(function(t){return t.pId===p.id&&t.type==="advance";}).reduce(function(s,t){return s+t.amt;},0),pct=p.budget?Math.min(100,(sp/p.budget)*100):0;ph+='<div style="margin-bottom:12px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:#e8f0ff;font-size:13px;font-weight:600;">'+p.name+'</span><span style="color:#8899bb;font-size:12px;">'+fm(sp)+'/'+fm(p.budget)+'</span></div><div class="pbg"><div class="pfl" style="background:'+(pct>80?"#ef4444":"#f59e0b")+';width:'+pct+'%;"></div></div></div>';});el("dplist").innerHTML=ph;}
-  else el("dproj").style.display="none";
+  if(D.p.length>0){
+    el("dproj").style.display="block";var ph="";
+    D.p.slice(0,3).forEach(function(p){var sp=D.t.filter(function(t){return t.pId===p.id&&t.type==="advance";}).reduce(function(s,t){return s+t.amt;},0),pct=p.budget?Math.min(100,(sp/p.budget)*100):0;ph+='<div style="margin-bottom:12px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:#e8f0ff;font-size:13px;font-weight:600;">'+p.name+'</span><span style="color:#8899bb;font-size:12px;">'+fm(sp)+'/'+fm(p.budget)+'</span></div><div class="pbg"><div class="pfl" style="background:'+(pct>80?"#ef4444":"#f59e0b")+';width:'+pct+'%;"></div></div></div>';});
+    el("dplist").innerHTML=ph;
+  } else el("dproj").style.display="none";
 }
 
-// ── WORKERS ───────────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+// WORKERS
+// ══════════════════════════════════════════════════════════════════
 function rWork(){
   var h=D.w.length===0?'<div class="card emp"><div style="font-size:40px;margin-bottom:10px;">👷</div><div>No workers added yet</div><br/><button class="btn bp" onclick="owm()">Add First Worker</button></div>':"";
   D.w.forEach(function(w){var e=wEar(w),p=wPaid(w),d=Math.max(0,e-p);h+='<div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start;"><div style="flex:1;"><div style="color:#e8f0ff;font-weight:700;font-size:16px;">'+w.name+'</div><div class="sub">'+(w.role||"—")+' • '+fm(w.wage)+'/day</div>'+(w.phone?'<div style="color:#60a5fa;font-size:12px;margin-top:2px;">📞 '+w.phone+'</div>':'')+' </div><div style="display:flex;gap:8px;"><button onclick="owm(\''+w.id+'\')" style="background:none;border:none;cursor:pointer;font-size:18px;">✏️</button><button onclick="delW(\''+w.id+'\')" style="background:none;border:none;cursor:pointer;font-size:18px;">🗑️</button></div></div><div class="g3" style="margin-top:12px;">'+stb(fm(e),"Earned","#22c55e")+stb(fm(p),"Paid","#60a5fa")+stb(fm(d),"Due",d>0?"#f59e0b":"#22c55e")+'</div></div>';});
@@ -277,7 +644,9 @@ function owm(id){ewid=id||null;el("wmtit").textContent=id?"Edit Worker":"Add Wor
 function svW(){var nm=el("wn").value.trim(),wg=parseFloat(el("ww").value);if(!nm||!wg){tst("⚠ Name and wage required!");return;}if(ewid){D.w=D.w.map(function(w){return w.id===ewid?{id:w.id,name:nm,role:el("wr").value.trim(),wage:wg,phone:el("wp").value.trim(),joined:w.joined}:w;});tst("✅ Updated!");}else{D.w.push({id:uid(),name:nm,role:el("wr").value.trim(),wage:wg,phone:el("wp").value.trim(),joined:td()});tst("✅ Added!");}sv();cm("mw");rWork();}
 function delW(id){if(!confirm("Delete this worker?"))return;D.w=D.w.filter(function(w){return w.id!==id;});sv();rWork();}
 
-// ── ATTENDANCE ────────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+// ATTENDANCE
+// ══════════════════════════════════════════════════════════════════
 function rAtt(){
   var de=el("adate");if(!de.value)de.value=td();
   var dt=de.value,dm=D.a[dt]||{},cn={P:0,H:0,A:0,L:0};
@@ -291,13 +660,15 @@ function rAtt(){
 function sAtt(wId,st){var dt=el("adate").value||td();if(!D.a[dt])D.a[dt]={};D.a[dt][wId]=st;sv();rAtt();}
 function mall(st){var dt=el("adate").value||td();if(!D.a[dt])D.a[dt]={};D.w.forEach(function(w){D.a[dt][w.id]=st;});sv();rAtt();}
 
-// ── PROJECTS ──────────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+// PROJECTS
+// ══════════════════════════════════════════════════════════════════
 function rProj(){
   var h=D.p.length===0?'<div class="card emp"><div style="font-size:40px;margin-bottom:10px;">🏗</div><div>No projects yet</div><br/><button class="btn bp" onclick="opm()">Add Project</button></div>':"";
   D.p.forEach(function(p){
     var adv=D.t.filter(function(t){return t.pId===p.id&&t.type==="advance";}),pay=D.t.filter(function(t){return t.pId===p.id&&t.type==="payout";});
     var ta=adv.reduce(function(s,t){return s+t.amt;},0),tp=pay.reduce(function(s,t){return s+t.amt;},0),pct=p.budget?Math.min(100,(ta/p.budget)*100):0,rc=adv.concat(pay).slice(-3).reverse();
-    h+='<div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;"><div><div style="color:#e8f0ff;font-weight:700;font-size:15px;">'+p.name+'</div>'+(p.client?'<div class="sub">Client: '+p.client+'</div>':'')+' <div style="margin-top:4px;">'+bdg(p.status,p.status==="active"?"#22c55e":"#8899bb")+'</div></div><button onclick="delP(\''+p.id+'\')" style="background:none;border:none;cursor:pointer;font-size:18px;">🗑️</button></div>';
+    h+='<div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;"><div><div style="color:#e8f0ff;font-weight:700;font-size:15px;">'+p.name+'</div>'+(p.client?'<div class="sub">Client: '+p.client+'</div>':'')+'<div style="margin-top:4px;">'+bdg(p.status,p.status==="active"?"#22c55e":"#8899bb")+'</div></div><button onclick="delP(\''+p.id+'\')" style="background:none;border:none;cursor:pointer;font-size:18px;">🗑️</button></div>';
     if(p.budget>0)h+='<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;font-size:12px;color:#8899bb;margin-bottom:4px;"><span>Budget: '+fm(p.budget)+'</span><span>'+pct.toFixed(0)+'% used</span></div><div class="pbg"><div class="pfl" style="background:'+(pct>80?"#ef4444":"#f59e0b")+';width:'+pct+'%;"></div></div></div>';
     h+='<div class="g2" style="margin-bottom:12px;"><div class="sb"><div class="sv" style="color:#f59e0b;">'+fm(ta)+'</div><div class="sl">Advances</div></div><div class="sb"><div class="sv" style="color:#22c55e;">'+fm(tp)+'</div><div class="sl">Payouts</div></div></div><div style="display:flex;gap:8px;"><button class="btn bg sm fw" onclick="otm(\''+p.id+'\',\'advance\')">+ Advance</button><button class="btn bs sm fw" onclick="otm(\''+p.id+'\',\'payout\')">+ Payout</button></div>';
     if(rc.length>0){h+='<div style="margin-top:10px;"><div style="color:#8899bb;font-size:11px;margin-bottom:4px;">Recent</div>';rc.forEach(function(t){var w=D.w.find(function(x){return x.id===t.wId;});h+='<div class="txr"><span style="color:#8899bb;">'+t.date+(w?" — "+w.name:"")+(t.note?" ("+t.note+")":"")+'</span><span style="color:'+(t.type==="payout"?"#22c55e":"#f59e0b")+';font-weight:700;">'+fm(t.amt)+'</span></div>';});h+='</div>';}
@@ -308,10 +679,12 @@ function rProj(){
 function opm(){el("pn").value="";el("pc").value="";el("pb").value="";el("ps").value="active";om("mp");}
 function svP(){var nm=el("pn").value.trim();if(!nm){tst("⚠ Name required!");return;}D.p.push({id:uid(),name:nm,client:el("pc").value.trim(),budget:parseFloat(el("pb").value)||0,status:el("ps").value,created:td()});sv();cm("mp");rProj();tst("✅ Project created!");}
 function delP(id){if(!confirm("Delete?"))return;D.p=D.p.filter(function(p){return p.id!==id;});sv();rProj();}
-function otm(pId,type){el("ttyp").value=type;el("ttit").textContent=type==="advance"?"Record Advance":"Record Payout";el("tdat").value=td();el("tamt").value="";el("tnot").value="";el("twrk").innerHTML=D.w.map(function(w){return'<option value="'+w.id+'">'+w.name+'</option>';}).join("");el("tprj").innerHTML='<option value="">No project</option>'+D.p.map(function(p){return'<option value="'+p.id+'"'+(p.id===pId?" selected":"")+'>'+p.name+'</option>';}).join("");om("mt");}
-function svT(){var amt=parseFloat(el("tamt").value);if(!amt){tst("⚠ Amount required!");return;}D.t.push({id:uid(),type:el("ttyp").value,wId:el("twrk").value,pId:el("tprj").value,amt:amt,note:el("tnot").value.trim(),date:el("tdat").value,created:new Date().toISOString()});sv();cm("mt");rProj();tst("✅ Recorded!");}
+function otm(pId,type){el("ttyp").value=type;el("ttit").textContent=type==="advance"?"Record Advance":"Record Payout";el("tdat").value=td();el("tamt").value="";el("tnot").value="";el("twrk").innerHTML=D.w.map(function(w){return'<option value="'+w.id+'">'+w.name+'</option>';}).join("");el("tprj").innerHTML='<option value="">No project</option>'+D.p.map(function(p){return'<option value="'+p.id+'"'+(p.id===pId?" selected":"")+'>'+p.name+'</option>';}).join("");om("mtx");}
+function svT(){var amt=parseFloat(el("tamt").value);if(!amt){tst("⚠ Amount required!");return;}D.t.push({id:uid(),type:el("ttyp").value,wId:el("twrk").value,pId:el("tprj").value,amt:amt,note:el("tnot").value.trim(),date:el("tdat").value,created:new Date().toISOString()});sv();cm("mtx");rProj();tst("✅ Recorded!");}
 
-// ── PAYOUTS ───────────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+// PAYOUTS
+// ══════════════════════════════════════════════════════════════════
 function rPay(){
   var all=D.t.filter(function(t){return t.type==="payout";}).sort(function(a,b){return b.created<a.created?-1:1;});
   el("ptot").textContent=fm(all.reduce(function(s,t){return s+t.amt;},0));el("pcnt").textContent=all.length+" transactions";
@@ -322,7 +695,9 @@ function rPay(){
 function opom(){el("odat").value=td();el("oamt").value="";el("onot").value="";el("owrk").innerHTML='<option value="">Select worker</option>'+D.w.map(function(w){return'<option value="'+w.id+'">'+w.name+'</option>';}).join("");el("oprj").innerHTML='<option value="">No project</option>'+D.p.map(function(p){return'<option value="'+p.id+'">'+p.name+'</option>';}).join("");om("mo");}
 function svO(){var wId=el("owrk").value,amt=parseFloat(el("oamt").value);if(!wId||!amt){tst("⚠ Worker and amount required!");return;}D.t.push({id:uid(),type:"payout",wId:wId,pId:el("oprj").value,amt:amt,note:el("onot").value.trim(),date:el("odat").value,created:new Date().toISOString()});sv();cm("mo");rPay();tst("✅ Payout recorded!");}
 
-// ── REPORTS ───────────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+// REPORTS
+// ══════════════════════════════════════════════════════════════════
 function rRep(){
   var me=el("rmon");if(!me.value)me.value=td().slice(0,7);
   var sm=me.value,sw=el("rwrk").value,cv=sw;
@@ -333,27 +708,83 @@ function rRep(){
   var tE=fil.reduce(function(s,w){return s+w.ear;},0),tP=fil.reduce(function(s,w){return s+w.pd;},0),tD=fil.reduce(function(s,w){return s+w.due;},0);
   el("rtot").innerHTML=stb(fm(tE),"Earned","#22c55e")+stb(fm(tP),"Paid","#60a5fa")+stb(fm(tD),"Due","#f59e0b");
   var h="";fil.forEach(function(w){h+='<div class="card"><div class="rb" style="margin-bottom:10px;"><div><div style="color:#e8f0ff;font-weight:700;font-size:15px;">'+w.name+'</div><div class="sub">'+(w.role||"—")+' • '+fm(w.wage)+'/day</div></div>'+bdg(w.due>0?"Due "+fm(w.due):"Cleared",w.due>0?"#f59e0b":"#22c55e")+'</div><div class="g4" style="margin-bottom:10px;">'+stb(w.P,"Present","#22c55e")+stb(w.H,"Half","#f59e0b")+stb(w.A,"Absent","#ef4444")+stb(w.tot,"Days","#8899bb")+'</div><div class="g3">'+stb(fm(w.ear),"Earned","#22c55e")+stb(fm(w.pd),"Paid","#60a5fa")+stb(fm(w.due),"Due","#f59e0b")+'</div></div>';});
-  if(!fil.length)h='<div class="card" style="text-align:center;color:#8899bb;">No data for this period</div>';
+  if(!fil.length)h='<div class="card" style="text-align:center;color:#8899bb;">No data</div>';
   el("rlist").innerHTML=h;
 }
-function exRep(){var data={workers:D.w,attendance:D.a,projects:D.p,transactions:D.t,exported:new Date().toISOString()};var blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="worktrack-report-"+(el("rmon").value||td().slice(0,7))+".json";a.click();tst("✅ Exported!");}
+function exRep(){var data={workers:D.w,attendance:D.a,projects:D.p,transactions:D.t,exported:new Date().toISOString()};var blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="worktrack-report-"+(el("rmon").value||td().slice(0,7))+".json";a.click();}
 
-// ── SYNC ──────────────────────────────────────────────────────────────────────
-function rSync(){var h="";[{l:"Workers",v:D.w.length},{l:"Attendance days",v:Object.keys(D.a).length},{l:"Projects",v:D.p.length},{l:"Transactions",v:D.t.length}].forEach(function(m){h+='<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #2a3a5e;font-size:14px;"><span style="color:#8899bb;">'+m.l+'</span><span style="color:#e8f0ff;font-weight:700;">'+m.v+'</span></div>';});el("ssum").innerHTML=h;}
-function dlBk(){var data={workers:D.w,attendance:D.a,projects:D.p,transactions:D.t,exported:new Date().toISOString()};var blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="worktrack-backup-"+td()+".json";a.click();el("sstat").innerHTML='<div style="color:#22c55e;font-size:13px;text-align:center;padding:8px;background:#0f1829;border-radius:8px;">✅ Backup downloaded!</div>';}
-function impBk(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(x){try{var d=JSON.parse(x.target.result);if(d.workers)D.w=d.workers;if(d.attendance)D.a=d.attendance;if(d.projects)D.p=d.projects;if(d.transactions)D.t=d.transactions;sv();el("sstat").innerHTML='<div style="color:#22c55e;font-size:13px;text-align:center;padding:8px;background:#0f1829;border-radius:8px;">✅ Imported!</div>';rSync();tst("✅ Restored!");}catch(err){el("sstat").innerHTML='<div style="color:#ef4444;font-size:13px;text-align:center;padding:8px;background:#0f1829;border-radius:8px;">❌ Invalid file.</div>';}};r.readAsText(f);e.target.value="";}
+// ══════════════════════════════════════════════════════════════════
+// SYNC PAGE RENDER
+// ══════════════════════════════════════════════════════════════════
+function rSync(){
+  var connected = isTokenValid();
+  var hasClientId = !!GDrive.clientId;
 
-// ── INIT ──────────────────────────────────────────────────────────────────────
-if("serviceWorker" in navigator){
-  window.addEventListener("load", function(){
-    navigator.serviceWorker.register("sw.js").catch(function(){});
-  });
+  // User info
+  var ui=el("sync-user-info");
+  if(connected && GDrive.userName){ ui.style.display="block"; el("sync-user-name").textContent="👤 "+GDrive.userName; el("sync-user-email").textContent=GDrive.userEmail||""; }
+  else ui.style.display="none";
+
+  // Buttons
+  var ba=el("sync-btn-area");
+  if(!hasClientId){
+    ba.innerHTML='<div style="color:#8899bb;font-size:13px;">Enter your Client ID below to get started</div>';
+  } else if(connected){
+    ba.innerHTML='<button class="btn bs fw" onclick="manualUpload()" style="margin-bottom:10px;">⬆ Upload Now</button><br/><button class="btn bd fw" style="font-size:12px;" onclick="gdriveDisconnect()">Sign Out</button>';
+  } else {
+    ba.innerHTML='<button class="btn bp fw" onclick="gdriveConnect()">🔐 Connect Google Drive</button>';
+  }
+
+  // Status card
+  var sc=el("sync-status-card");
+  if(hasClientId){ sc.style.display="block";
+    var sd='<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #2a3a5e;font-size:14px;"><span style="color:#8899bb;">Status</span><span style="color:'+(connected?"#22c55e":"#f59e0b")+';font-weight:700;">'+(connected?"✅ Connected":"⚠ Not signed in")+'</span></div>';
+    if(GDrive.lastSynced)sd+='<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #2a3a5e;font-size:14px;"><span style="color:#8899bb;">Last synced</span><span style="color:#e8f0ff;font-weight:700;">'+GDrive.lastSynced+'</span></div>';
+    sd+='<div style="display:flex;justify-content:space-between;padding:8px 0;font-size:14px;"><span style="color:#8899bb;">Auto-sync</span><span style="color:#22c55e;font-weight:700;">✅ On every change</span></div>';
+    el("sync-details").innerHTML=sd;
+  } else sc.style.display="none";
+
+  // Controls
+  el("sync-controls-card").style.display = connected ? "block" : "none";
+
+  // Setup card — show if no client id saved
+  el("sync-setup-card").style.display = "block";
+  if(GDrive.clientId) el("client-id-input").value = GDrive.clientId;
+
+  // Data summary
+  var h="";[{l:"Workers",v:D.w.length},{l:"Attendance days",v:Object.keys(D.a).length},{l:"Projects",v:D.p.length},{l:"Transactions",v:D.t.length}].forEach(function(m){h+='<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #2a3a5e;font-size:14px;"><span style="color:#8899bb;">'+m.l+'</span><span style="color:#e8f0ff;font-weight:700;">'+m.v+'</span></div>';});
+  el("ssum").innerHTML=h;
+  updateDriveStatusBar();
 }
-ld();
+
+// Local backup
+function dlBk(){var data={workers:D.w,attendance:D.a,projects:D.p,transactions:D.t,exported:new Date().toISOString()};var blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="worktrack-backup-"+td()+".json";a.click();}
+function impBk(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(x){try{var d=JSON.parse(x.target.result);if(d.workers)D.w=d.workers;if(d.attendance)D.a=d.attendance;if(d.projects)D.p=d.projects;if(d.transactions)D.t=d.transactions;sv();tst("✅ Imported!","#22c55e");renderPage(currentPage);}catch(err){tst("❌ Invalid file","#ef4444");}};r.readAsText(f);e.target.value="";}
+
+// ══════════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════════
+if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}
+
+gdriveLoad();
+lld();
 el("adate").value=td();
 el("rmon").value=td().slice(0,7);
+updateDriveStatusBar();
 rHome();
-setTimeout(function(){var s=el("spl");s.style.transition="opacity .5s";s.style.opacity="0";setTimeout(function(){s.style.display="none";},500);},1000);
+
+// Splash
+var splMsg=el("spl-msg");
+if(GDrive.clientId && isTokenValid()){splMsg.textContent="Loading & syncing...";}
+setTimeout(function(){
+  var s=el("spl");s.style.transition="opacity .5s";s.style.opacity="0";
+  setTimeout(function(){s.style.display="none";
+    // Auto-download from drive on startup if connected
+    if(GDrive.clientId && isTokenValid()){
+      driveDownloadData(function(ok){if(ok){tst("✅ Synced from Drive","#22c55e");renderPage(currentPage);}});
+    }
+  },500);
+},1200);
 </script>
 </body>
 </html>
